@@ -1,0 +1,28 @@
+/** 
+*  anewssystem Plugin: 
+*
+* @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
+* @author     Taggic <taggic@t-online.de>
+*/
+
+Intro
+------ 
+ 
+Syntax
+------- 
+
+
+Installation
+------------
+ Just download and extract it as folder “anewssystem” into your “\lib\plugins” 
+ directory or put the link into the Plugin Manager for automated installation:
+ https://github.com/Taggic/anewssystem/zipball/master
+
+
+Configuration
+--------------
+
+
+Examples/Usage
+--------------
+for example please refer to the bottom of: http://www.fristercons.de/fcon/

@@ -1,0 +1,118 @@
+
+li.newslist {
+  padding-bottom:1ex;
+  font-size:0.85em;
+  color: #828282;
+}
+
+.news_preview {
+  font-size:0.95em;
+  line-height:115%;
+  color: #828282;
+  margin:0;
+  padding:0;
+}
+
+.newsdate {
+  font-size:90%;
+  color: #9E9E9E;
+}
+
+/* --- news input style --- */
+  .news_form_div {
+    border: 1px dotted #828282;
+    width:  525px;
+    padding: 8px 6px 0 8px;
+    border-radius: 4px;
+  }
+  
+  .news_input_form {}
+  
+  .anss_input_btn_save {
+    width: 523px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  
+  .news_input_head {
+    margin-left: 45px;
+  }
+  
+  .news_input_link {
+    margin-left: 23px;
+  }
+  
+  .news_input_start {
+    margin-left: 5px;
+  }
+  
+  .news_input_stop  {
+    margin-left: 10px;
+  }
+  
+  .news_input_textarea {
+  }
+  
+  .nws_charcount {
+    font-style:italic;
+    font-size:0.75em;
+    color: #828282;
+  }
+
+/* ---  news preview style --- */
+  .news_box {
+    border: 1px solid #D3D3D3;
+    background: #EEEDFF;
+    padding: 3px 3px 0 0;
+    border-radius:4px;
+    box-shadow: 2px 2px 4px #6B6B6B;  
+  }
+
+  .news_header {
+    margin-bottom: 6px;
+    margin-left: 9px;
+    font-weight: bold;
+    font-style:italic;
+    text-decoration:underline !important;
+    color: #686868  !important;
+  }
+
+  .news_list {
+    width: 93%;
+    list-style-type:disc !important;
+  }
+
+  .news_link {
+    font-size:8pt;
+    color: #5244D9 !important;
+    font: normal;
+    font-weight:normal;
+    font-style:italic;
+  }
+
+  .news_preview {
+    font-size:8pt;
+    font-weight:normal;
+    font-style:italic;
+    font-style:italic;
+    line-height:115%;
+    color: #828282;
+    margin:0;
+    margin-top: 1px;
+    padding:0;
+  }
+
+  .news_date {
+    font-size: 80%;
+    font-style:italic;
+    color: #828282 !important;
+  }
+
+  /*-------------------------------------------------------*/
+
+  div.listabocheck {
+  #  display:inline;
+    border:1px dotted __dark__;
+    background-color:__light__;
+    margin-bottom:1em;
+  }

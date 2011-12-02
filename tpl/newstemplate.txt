@@ -1,0 +1,6 @@
+//field|type    |length              |value  |description       | add info   (<-do not delete this line)
+head   |text    |size="64"           |       |Headline          |headdescr
+link   |text    |size="64"           |       |Linked page       |linkdescr
+start  |date    |size="10"           |now    |Publishing date   |startdescr
+stop   |date    |size="10"           |4 month|Perishing date    |stopdescr
+text   |textarea|cols="63" rows="7"  |       |Your news article:|msgdescr    
