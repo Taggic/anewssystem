@@ -226,19 +226,21 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                             $news_head = $value;                        
                         }
                         elseif($key=='link'){                      
-                            if(strlen(trim($value))<2) { $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') ); }
-                            else {  $page = wl( trim($value) ); }
-                            $link = $page.'#'.$xhtml_renderer->_headerToLink($news_head);
-                            $news_head = '<a class="news_link" href="'. $link .'">'. $news_head .'</a>'.NL;
+                            //echo $value.'<br />';
+                            /*if(strlen(trim($value))<2) { $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') ); }
+                            else {  $page = wl( trim($value) ); }    */
+                            //$link = $page.'#'.$xhtml_renderer->_headerToLink($news_head);
+                            //$news_head = $link;
+                            $news_head = '<a class="news_link" href="'.$value.'">'. $news_head .'</a>'.NL;
                         }
                  }
                  if(($aFlag === true) && ($bFlag === true)) {
                      // if no link then refer to newsdata page
-                     if(strpos($news_head, 'class="newslink"')<1) { 
+                     /*if(strpos($news_head, 'newslink')<1) { 
                           $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') ); 
                           $link = $page;
-                          $news_head = '<a class="news_link" href="'. $link .'">'. $news_head .'</a>'.NL;
-                     }
+                          $news_head = '<a class="news_link" href="'. $page .'">123</a>'.NL;
+                     } */
                      $output .= $news_head.$news_date.$preview_string.'<hr>'.NL;
                  }    
              }

@@ -3,7 +3,7 @@
 base    anewssystem
 author  Taggic
 email   taggic@t-online.de
-date    2011-12-02
+date    2011-12-07
 name    anewssystem
 desc    provides an easy to handle, page based news system
 url     http://www.dokuwiki.org/plugin:anewssystem

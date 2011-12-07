@@ -83,22 +83,23 @@ li.newslist {
   }
 
   .news_link {
-    font-size:8pt;
+    font-size:9pt;
     color: #5244D9 !important;
     font: normal;
     font-weight:normal;
     font-style:italic;
+    line-height:1.6em  !important;
   }
 
   .news_preview {
-    font-size:8pt;
+    font-size:8pt !important;
     font-weight:normal;
     font-style:italic;
     font-style:italic;
-    line-height:115%;
+    line-height: 1.4em  !important;
     color: #828282;
     margin:0;
-    margin-top: 1px;
+    margin-bottom: 4px;
     padding:0;
   }
 
@@ -109,10 +110,3 @@ li.newslist {
   }
 
   /*-------------------------------------------------------*/
-
-  div.listabocheck {
-  #  display:inline;
-    border:1px dotted __dark__;
-    background-color:__light__;
-    margin-bottom:1em;
-  }
