@@ -12,6 +12,7 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 if(!defined('DOKU_DATA')) define('DOKU_DATA',DOKU_INC.'data/pages/');
 require_once(DOKU_PLUGIN.'syntax.php');  
 require_once(DOKU_INC.'inc/parser/xhtml.php');
+require_once(DOKU_INC.'inc/auth.php');
  
 /**
  * All DokuWiki plugins to extend the parser/rendering mechanism
@@ -47,7 +48,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         //handle params
         $data = array();
     /******************************************************************************/
-    /*      parameter 1 can be one of the following: author, flash 
+    /*      parameter 1 can be one of the following: xs-author, flash 
     /******************************************************************************/
 
         $params = $match;  // if you will have more parameters and choose ',' to delim them
@@ -71,22 +72,22 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $ans_conf) {
 
         $xhtml_renderer = new Doku_Renderer_xhtml();
-        $records    = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
+        $records      = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
         unset($records[0]);
-        $target     = $this->getConf('news_datafile');
-        $targetpage = htmlspecialchars(trim($target));
-        $prefix     = 'anss_';
-        $cut_prefx = 'news_input_';
+        $target       = $this->getConf('news_datafile');
+        $targetpage   = htmlspecialchars(trim($target));
+        $prefix       = 'anss';
+        $cut_prefx    = 'news_input_';
         $allnewsdata1 = $this->getConf('news_output');
-        $allnewsdata = wl( (isset($allnewsdata1) ? $allnewsdata1 : 'news:newsdata') );          
-
+        $allnewsdata  = wl( (isset($allnewsdata1) ? $allnewsdata1 : 'news:newsdata') );          
 
         // 1. read template (plugins/anewssystem/template.php)
         $template   = file_get_contents(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
-        
       /*------- add news action part -----------------------------------------*/
-        if ($ans_conf['param']==='author') {
-            if( ($_POST["xs-".$prefix] == "check") && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
+            $post_prefix = $_POST["xs-".$prefix]; 
+            
+            if( (strlen($post_prefix)>2) && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
+
                 // this will be called to store the news article to the others
                 $id_count = 1;
                 foreach( $_POST as $postkey => $postvalue ) {
@@ -103,30 +104,33 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                       }
                       $newrecord .= "  * " . $key . ": " . $postvalue . "\n";
                     }
-                  }
-                  $newrecord .= "\n----\n\n";
-                  $oldrecord = rawWiki($targetpage);
+                }
+                  
+                $newrecord .= "\n----\n\n";
+                $oldrecord = rawWiki($targetpage);
 
-                  saveWikiText($targetpage, $newrecord.$oldrecord, "New entry", true);
-                  msg($this->getLang('news_added'),1);
+                saveWikiText($targetpage, $newrecord.$oldrecord, "New entry", true);
+                $_POST["xs-".$prefix] = '';
+                msg($this->getLang('news_added'),1);
+
             }
-            elseif( ($_POST["xs-".$prefix] == "check") && (auth_quickaclcheck($targetpage) < AUTH_EDIT) ) {
+            elseif( (strlen($post_prefix)>2) && (auth_quickaclcheck($targetpage) < AUTH_EDIT) ) {
                 msg($this->getLang('no_permission'),-1);
             }
 
       /*------- show user form -----------------------------------------------*/            
             // this will provide the user form to add further news
             // 2. create input form based on template
-            $output = '<span><script type="text/javascript">
+        if ($ans_conf['param']==='author') {
+            $output .= '<span><script type="text/javascript">
                           function count_chars(obj) {
-                              document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(message length: " + obj.value.length + " )";
+                              document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(message length: " + obj.value.length + " )"
                           }
                        </script></span>';
 
             $output .= '<div class="news_form_div">
                        <form class="news_input_form" id="'.$prefix.'"
-                            method="POST" 
-                            action="'.$_SERVER['REQUEST_URI'].'" 
+                            method="POST"
                             >'.NL;
                             
             $output .= '<input type="hidden" name="xs-'.$prefix.'" value="check" />'.NL;
@@ -193,12 +197,11 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
             }
 
             $output .= '<input class="anss_input_btn_save" 
-                               id="anss_input_btn_save" 
                                type="submit" 
-                               name="anss_input_btn_save" 
+                               name="submit" 
                                value="'.$this->getLang('anss_input_btn_save').'" 
                                title="'.$this->getLang('anss_input_btn_save_descr').'" />'.NL;
-            $output .= '<form></div>';
+            $output .= '</form></div>';
             // 3. check if path/file exist on save click
             // 4. add the new post before the existing (e.g. news:newsdata.txt)
             $renderer->doc .= $output;
@@ -229,8 +232,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $newsitems = array();
           // this will be called to display a preview
           $output = '<div class="news_box" '.$prefs[1].'>
-          <div><a class="news_header" href="'. $allnewsdata .'">NEWS flash</a></div>
-          <ul class="news_list" '.$item_width.'">';
+          <div  class="news_header"><a class="news_header_link" href="'. $allnewsdata .'">NEWS flash</a></div>
+          <div class="news_list" '.$item_width.'">';
 
           // 1. read news file (e.g. news:newsdata.txt)
           $av = 0;
@@ -252,7 +255,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     if(($key=='start') && strtotime(trim($value)) < time()) {
                         $aFlag = true;
                         $value = date($this->getConf('d_format'), strtotime($value));
-                        $news_date = '<span class="news_date">('. $value .')</span><br />'.NL;
+                        $news_date = '<span class="news_date"> ('. $value .')</span><br />'.NL;
                     }
                     elseif(($key=='stop') && strtotime(trim($value)) > time()) {
                         $bFlag = true;
@@ -260,7 +263,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     elseif($key=='text'){                      
                         $prvw_string = substr( trim( preg_replace ('/\<.*?\>/', ' ', $value ) ), 0, $preview_length );
                         $prvw_string = p_render('xhtml',p_get_instructions($prvw_string),$info);
-                        $preview_string = '<div class="news_preview">' . $prvw_string . ' ... </div>'.NL;
+                        $preview_string = '<span class="news_preview">' . $prvw_string . '</span>'.NL;
                     }
                     // head has to be before the link in the template !
                     elseif($key=='head'){
@@ -271,23 +274,17 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     }
              }
              if(($aFlag === true) && ($bFlag === true)) {
-                 $output .= '<li>'.$news_date.$news_head.$preview_string.'</li><hr>'.NL;
+                 $output .= '<div class="prev_newsitem">'.$news_head.$news_date.$preview_string.'</div>'.NL;
                  $item_counter = $item_counter + 1;                 
                  // stop if max number of items is reached
                  if (isset($prefs[3]) && ($item_counter == $prefs[3])) {
                     break; }
              }    
           }
-          $output .= '</ul></div>'.NL.NL;
+          $output .= '</div></div>'.NL.NL;
           $renderer->doc .= $output;
         }
 
-/*          msg('params> '.$ans_conf['param'],0);
-          msg('prefs[0]> '.$prefs[0],0);
-          msg('prefs[1]> '.$prefs[1],0);
-          msg('prefs[2]> '.$prefs[2],0);
-          msg('prefs[3]> '.$prefs[3],0);
-*/
         /* --- Show all news -------------------------------------------------*/
         if (strpos($ans_conf['param'], 'allnews')!== false) {
           
