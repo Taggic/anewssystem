@@ -98,7 +98,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         // this is a multilined value, so we need to prepend a linebreak
                         // to achieve a multilined value for the template plugin
                         $postvalue = "\n" . $postvalue;
+                        $postvalue = str_replace(chr(13),"",$postvalue);
                       }
+//                      if( strpos(trim($postvalue), "\n\n") !== false ) $postvalue = str_replace('\n\n','\n',$postvalue);
                       if(strpos('anchor',$key)>0) {
                         $postvalue ='<a href="'.$postvalue.'">'.$postvalue.'</a>';
                       }
@@ -172,6 +174,37 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                              'value="'.$default_value.'" title="'.trim($this->getLang(trim($fields[5]))).
                                       '" /></p>'.NL;
                 }   
+                else if (trim($fields[0]) == "author") {
+                        global $ID;
+                        global $conf;
+                        $current_usr = pageinfo();  //to get current user as author
+                        // real name: $current_usr['userinfo']['name']
+                        // login:     $current_usr['client']
+                        if($conf['showuseras'] == 'loginname') {
+                          $default_value = $current_usr['client'];
+                        }
+                        elseif($conf['showuseras'] == 'username') {
+                          // real name
+                          $default_value = $current_usr['userinfo']['name'];
+                        }
+                        elseif($conf['showuseras'] == 'email') {
+                          // ofuscated mail address according mailguard settings
+                          $default_value = $current_usr['userinfo']['name'];
+                        }
+                        elseif($conf['showuseras'] == 'email_link') {
+                          $default_value = $current_usr['userinfo']['name']; 
+                        }
+                        else $default_value = "";
+                        
+                        $output .= '<p>'.trim($fields[4]).'
+                                      <input class="news_input_'.trim($fields[0]).
+                                          '" id="news_input_'.trim($fields[0]).
+                                          '" name="news_input_'.trim($fields[0]).
+                                          '" type="'.trim($fields[1]).
+                                          '" '.trim($fields[2]). 
+                                           ' value="'.$default_value.'" title="'.trim($this->getLang(trim($fields[5]))).
+                                      '" /></p>'.NL;
+                }
                 else if (trim($fields[1]) == "link") {
                         $default_value = wl($allnewsdata1).$default_anker;
                         $output .= '<p>'.trim($fields[4]).'
@@ -241,7 +274,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $entries = explode("\n----\n\n",$oldrecord);
           foreach($entries as $entry) {
              // split news block into line items
-             $temp_array = explode("  * ",$entry);
+             $temp_array = explode("\n  * ",$entry);
              unset($temp_array[0]);
              
              // 2. create preview output
@@ -250,20 +283,19 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
              $bFlag = false;
              foreach ($temp_array as $item) {
                     list($key, $value) = split(":",trim($item),2);
-                        
                     
                     if(($key=='start') && strtotime(trim($value)) < time()) {
                         $aFlag = true;
                         $value = date($this->getConf('d_format'), strtotime($value));
-                        $news_date = '<span class="news_date"> ('. $value .')</span><br />'.NL;
+                        $news_date = '<span class="news_date"> ('. $value ;
                     }
                     elseif(($key=='stop') && strtotime(trim($value)) > time()) {
                         $bFlag = true;
                     }
                     elseif($key=='text'){                      
-                        $prvw_string = substr( trim( preg_replace ('/\<.*?\>/', ' ', $value ) ), 0, $preview_length );
-                        $prvw_string = p_render('xhtml',p_get_instructions($prvw_string),$info);
-                        $preview_string = '<span class="news_preview">' . $prvw_string . '</span>'.NL;
+//                        $prvw_string = substr( trim( preg_replace ('/\<.*?\>/', ' ', $value ) ), 0, $preview_length );
+                        $prvw_string = p_render('xhtml',p_get_instructions($value),$info);
+                        $preview_string = '<span class="news_preview">' . $prvw_string .'</span>'. NL;
                     }
                     // head has to be before the link in the template !
                     elseif($key=='head'){
@@ -272,7 +304,11 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     elseif($key=='link'){                      
                         $news_head = '<a class="news_link" href="'.$value.'">'. $news_head .'</a>'.NL;
                     }
+                    elseif($key=='author'){                      
+                        $news_date .= ', '. $value;
+                    }
              }
+             $news_date .=  ')</span><br />'.NL;
              if(($aFlag === true) && ($bFlag === true)) {
                  $output .= '<div class="prev_newsitem">'.$news_head.$news_date.$preview_string.'</div>'.NL;
                  $item_counter = $item_counter + 1;                 
@@ -287,14 +323,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 
         /* --- Show all news -------------------------------------------------*/
         if (strpos($ans_conf['param'], 'allnews')!== false) {
-          
-          $output .= 'All News ><br />';
-          
           $newsitems = array();
           // this will be called to display all news articles
           $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') );          
-          $output = '<div class="allnews_box">
-          <ul class="allnews_list">'.NL;
+          $output = '<div class="allnews_box">'.NL;
           // 1. read news file (e.g. news:newsdata.txt)
           $av = 0;
           $oldrecord = rawWiki($targetpage);
@@ -303,7 +335,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           
           foreach($entries as $entry) {
              // split news block into line items
-             $temp_array = explode("  * ",$entry);
+             $temp_array = explode("\n  * ",$entry);
              unset($temp_array[0]);
              
              // 2. create output
@@ -320,15 +352,15 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         elseif(($key=='start') && strtotime(trim($value)) < time()) {
                             $aFlag = true;
                             $value = date($this->getConf('d_format'), strtotime($value));
-                            $news_date = '<a name="'.$anchor.'" id="'.$anchor.'"><span class="allnews_date">('. $value .')</span></a><br />'.NL;
+                            $news_date = '<span class="news_date"> ('. $value ;
                         }
                         elseif(($key=='stop') && strtotime(trim($value)) > time()) {
                             $bFlag = true;
                         }
                         elseif($key=='text'){                      
                             // parse value for DW syntax ?
-                            
-                            $preview_string = '<div class="all_news_article">' . p_render('xhtml',p_get_instructions($value),$info) . '</div>'.NL;
+                            $preview_string = p_render('xhtml',p_get_instructions($value),$info);
+//                            $preview_string = '<div class="all_news_article">' . $preview_string . '</div>'.NL;
                         }
                         // head has to be before the link in the template !
                         elseif($key=='head'){
@@ -337,12 +369,16 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         elseif($key=='link'){                      
                             $news_head = '<span class="allnews_head">'. $news_head .'</span>'.NL;
                         }
+                        elseif($key=='author'){                      
+                            $news_date .= ', '. $value;
+                        }
                  }
+                 $news_date .=  ')</span><br />'.NL;
                  if(($aFlag === true) && ($bFlag === true)) {
-                     $output .= '<li>'.NL.$news_date.NL.$news_head.NL.$preview_string.NL.'</li>'.NL.'<hr>'.NL;
+                     $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.'</div>'.NL.'<hr>'.NL;
                  }    
           }
-          $output .= '</ul></div><div style="clear: both;"></div>'.NL.NL;
+          $output .= '</div><div style="clear: both;"></div>'.NL.NL;
           $renderer->doc .= $output;
         }
         // --- faulty syntax ---
