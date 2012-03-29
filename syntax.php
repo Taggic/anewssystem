@@ -70,21 +70,25 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 * @author Taggic <taggic@t-online.de>
 */   
     function render($mode, &$renderer, $ans_conf) {
-
         $xhtml_renderer = new Doku_Renderer_xhtml();
         $records      = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
         unset($records[0]);
         $target       = $this->getConf('news_datafile');
         $targetpage   = htmlspecialchars(trim($target));
         $prefix       = 'anss';
+        $del          = 'anss_del';
         $cut_prefx    = 'news_input_';
         $allnewsdata1 = $this->getConf('news_output');
         $allnewsdata  = wl( (isset($allnewsdata1) ? $allnewsdata1 : 'news:newsdata') );          
+        // check if user has write permission on that ID
+        $current_usr = pageinfo();
 
         // 1. read template (plugins/anewssystem/template.php)
         $template   = file_get_contents(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
       /*------- add news action part -----------------------------------------*/
-            $post_prefix = $_POST["xs-".$prefix]; 
+            $post_prefix   = $_POST["xs-".$prefix];
+            $delete_record = $_POST["anss_del_record"];
+            $delete_anchor = $_POST["anss_del_anchor"];
             
             if( (strlen($post_prefix)>2) && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
 
@@ -108,7 +112,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     }
                 }
                   
-                $newrecord .= "\n----\n\n";
+//                $newrecord .= "\n----\n\n";
+                $newrecord = '====== '.$_POST['news_input_head'].' ======'.chr(10).chr(10).$newrecord.chr(10);
                 $oldrecord = rawWiki($targetpage);
 
                 saveWikiText($targetpage, $newrecord.$oldrecord, "New entry", true);
@@ -119,7 +124,24 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
             elseif( (strlen($post_prefix)>2) && (auth_quickaclcheck($targetpage) < AUTH_EDIT) ) {
                 msg($this->getLang('no_permission'),-1);
             }
-
+      /*------- delete a news record -----------------------------------------*/
+            if( (strlen($delete_record)>2) && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
+                $raw_records = rawWiki($targetpage);
+                $records = explode("====== ",$raw_records);
+                foreach($records as $record) {
+                  if((stripos($record, $delete_record)!==false) && (stripos($record, $delete_anchor)!==false))  {
+//                    echo "Delete: ".$delete_record."<br />";
+//                    echo "Anchor: ".$delete_anchor."<br />";
+                    continue;
+                  }
+                  else { if(strlen($record)>1) $news_records.= "====== ".$record;}
+                }
+//                echo "News: ".$news_records."<br />";
+                // write file
+                saveWikiText($targetpage, $news_records, "New entry", true);
+                // inform user
+                msg('Record deleted.',1);
+            }    
       /*------- show user form -----------------------------------------------*/            
             // this will provide the user form to add further news
             // 2. create input form based on template
@@ -154,14 +176,25 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 }
                 else if (trim($fields[0]) == "anchor") {
                         $default_anker = '#'.date("YmdHis");
-                        $output .= '<p>'.trim($fields[4]).'
-                                      <input class="news_input_'.trim($fields[0]).
-                                          '" id="news_input_'.trim($fields[0]).
-                                          '" name="news_input_'.trim($fields[0]).
-                                          '" type="'.trim($fields[1]).
-                                          '" '.trim($fields[2]). 
-                                             'value="'.$default_anker.'" title="'.trim($this->getLang(trim($fields[5]))).
-                                      '" /></p>'.NL;
+                        if(stripos($fields[1],'hidden') === false) {                        
+                            $output .= '<p>'.trim($fields[4]).'
+                                          <input class="news_input_'.trim($fields[0]).
+                                              '" id="news_input_'.trim($fields[0]).
+                                              '" name="news_input_'.trim($fields[0]).
+                                              '" type="'.trim($fields[1]).
+                                              '" '.trim($fields[2]). 
+                                                 'value="'.$default_anker.'" title="'.trim($this->getLang(trim($fields[5]))).
+                                          '" /></p>'.NL;
+                        }
+                        else {
+                            $output .= '<input class="news_input_'.trim($fields[0]).
+                                              '" id="news_input_'.trim($fields[0]).
+                                              '" name="news_input_'.trim($fields[0]).
+                                              '" type="'.trim($fields[1]).
+                                              '" '.trim($fields[2]). 
+                                                 'value="'.$default_anker.'" title="'.trim($this->getLang(trim($fields[5]))).
+                                          '" />'.NL;                        
+                        }
                 }
                 else if (trim($fields[1]) == "date") {
                         $default_value = date("Y-m-d", strtotime($fields[3]));
@@ -264,14 +297,20 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           
           $newsitems = array();
           // this will be called to display a preview
-          $output = '<div class="news_box" '.$prefs[1].'>
-          <div  class="news_header"><a class="news_header_link" href="'. $allnewsdata .'">NEWS flash</a></div>
-          <div class="news_list" '.$item_width.'">';
+          $output = '<div class="news_box" '.$prefs[1].'>';
+          if($this->getConf('newsflash_link') == false) {
+              $output .= '<div  class="news_header">'.$this->getLang('newsflash_title').'</div>'.NL;
+          }
+          else {
+              $output .= '<div  class="news_header"><a class="news_header_link" href="'. $allnewsdata .'">'.$this->getLang('newsflash_title').'</a></div>'.NL;
+          }
+          $output .= '<div class="news_list" '.$item_width.'">'.NL;
 
           // 1. read news file (e.g. news:newsdata.txt)
           $av = 0;
           $oldrecord = rawWiki($targetpage);
-          $entries = explode("\n----\n\n",$oldrecord);
+//          $entries = explode("\n----\n\n",$oldrecord);
+          $entries = explode("======",$oldrecord);
           foreach($entries as $entry) {
              // split news block into line items
              $temp_array = explode("\n  * ",$entry);
@@ -284,7 +323,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
              foreach ($temp_array as $item) {
                     list($key, $value) = split(":",trim($item),2);
                     
-                    if(($key=='start') && strtotime(trim($value)) < time()) {
+                    if($key=='anchor') {
+                            $anchor = trim($value);
+                        }
+                    elseif(($key=='start') && strtotime(trim($value)) < time()) {
                         $aFlag = true;
                         $value = date($this->getConf('d_format'), strtotime($value));
                         $news_date = '<span class="news_date"> ('. $value ;
@@ -300,6 +342,42 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     // head has to be before the link in the template !
                     elseif($key=='head'){
                         $news_head = $value;                        
+                             // add edit button to section edit the article if edit  
+                             // permission is given to that current user for this ID
+                             if($current_usr["perm"]>1) {
+                                 // detect start and stop of section
+                                 $news_rawcontent = rawWiki($targetpage);                                
+                                 $start= stripos($news_rawcontent,$value)-5;
+                                 $tmp = explode("====== ",$news_rawcontent);
+                                 foreach($tmp as $temps) {
+                                    if(stripos($temps,$value)!==false) {
+                                        $stop = strlen($temps)+$start+6;
+                                        break;
+                                    }                                    
+                                 }
+                                 // assamble the pieces for the button and form.
+                                 $url = wl($this->getConf('news_datafile'),'',true);
+
+                                 $ank = '<div><form class="btn_secedit" 
+                                              method="post" 
+                                              action="'.$url.'">
+                                                <input type="hidden" name="do" value="edit" />
+                                                <input type="hidden" name="summary" value="['.$value.'] " />
+                                                <input type="hidden" name="target" value="section" />
+                                                <input type="hidden" name="range" value="'.$start.'-'.$stop.'" />
+                                                <input class="anss_edit_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot2.gif" alt="Edit" title="Edit ..." value="Edit" />
+                                          </form>
+                                          <span style="width:3em;">&nbsp;</span>';
+                                 // add a delete button and $POST
+                                 $ank .= '<form class="anss_delete" 
+                                              method="post" >
+                                              <input type="hidden" name="anss_del_anchor" value="'.$anchor.'"/>
+                                              <input type="hidden" name="anss_del_record" value="'.$news_head.'"/>        
+                                              <input class="anss_del_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot.gif" alt="Del" title="'.$this->getLang('del_title').'" />        
+                                          </form>
+                                          </div>';         
+                             }
+                             else $ank='';
                     }
                     elseif($key=='link'){                      
                         $news_head = '<a class="news_link" href="'.$value.'">'. $news_head .'</a>'.NL;
@@ -310,7 +388,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
              }
              $news_date .=  ')</span><br />'.NL;
              if(($aFlag === true) && ($bFlag === true)) {
-                 $output .= '<div class="prev_newsitem">'.$news_head.$news_date.$preview_string.'</div>'.NL;
+                 $output .= '<div class="prev_newsitem">'.$news_head.$news_date.$preview_string.$ank.'</div>'.NL;
                  $item_counter = $item_counter + 1;                 
                  // stop if max number of items is reached
                  if (isset($prefs[3]) && ($item_counter == $prefs[3])) {
@@ -330,9 +408,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           // 1. read news file (e.g. news:newsdata.txt)
           $av = 0;
           $oldrecord = rawWiki($targetpage);
-          $entries = explode("\n----\n\n",$oldrecord);
+//          $entries = explode("\n----\n\n",$oldrecord);
+          $entries = explode("======",$oldrecord);
           $info = array();
-          
+                    
           foreach($entries as $entry) {
              // split news block into line items
              $temp_array = explode("\n  * ",$entry);
@@ -364,7 +443,42 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         }
                         // head has to be before the link in the template !
                         elseif($key=='head'){
-                            $news_head = $value;                        
+                             $news_head = trim($value);                        
+                             // add edit button to section edit the article if edit  
+                             // permission is given to that current user for this ID
+                             if($current_usr["perm"]>1) {
+                                 // detect start and stop of section
+                                 $news_rawcontent = rawWiki($targetpage);                                
+                                 $start= stripos($news_rawcontent,$value)-5;
+                                 $tmp = explode("====== ",$news_rawcontent);
+                                 foreach($tmp as $temps) {
+                                    if(stripos($temps,$value)!==false) {
+                                        $stop = strlen($temps)+$start+6;
+                                        break;
+                                    }                                    
+                                 }
+                                 // assamble the pieces for the button and form.
+                                 $url = wl($this->getConf('news_datafile'),'',true);
+                                 $ank = '<div><form class="btn_secedit" 
+                                              method="post" 
+                                              action="'.$url.'">
+                                                <input type="hidden" name="do" value="edit" />
+                                                <input type="hidden" name="summary" value="['.$value.'] " />
+                                                <input type="hidden" name="target" value="section" />
+                                                <input type="hidden" name="range" value="'.$start.'-'.$stop.'" />
+                                                <input class="anss_edit_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot2.gif" alt="Edit" title="Edit ..." value="Edit" />
+                                          </form>
+                                          <span style="width:3em;">&nbsp;</span>';
+                                 // add a delete button and $POST
+                                 $ank .= '<form class="anss_delete" 
+                                              method="post" >
+                                              <input type="hidden" name="anss_del_anchor" value="'.$anchor.'"/>
+                                              <input type="hidden" name="anss_del_record" value="'.$news_head.'"/>        
+                                              <input class="anss_del_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot.gif" alt="Del" title="'.$this->getLang('del_title').'" />        
+                                          </form>
+                                          </div>';         
+                             }
+                             else $ank='';
                         }
                         elseif($key=='link'){                      
                             $news_head = '<span class="allnews_head">'. $news_head .'</span>'.NL;
@@ -374,8 +488,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         }
                  }
                  $news_date .=  ')</span><br />'.NL;
+                 
+                 
                  if(($aFlag === true) && ($bFlag === true)) {
-                     $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.'</div>'.NL.'<hr>'.NL;
+                     $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
                  }    
           }
           $output .= '</div><div style="clear: both;"></div>'.NL.NL;

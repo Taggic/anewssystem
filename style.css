@@ -69,32 +69,39 @@ li.newslist {
   .news_box {
     border: 1px solid #D3D3D3;
     background: #EEEDFF;
-    margin:  3px 0px 3px 10px;
-    padding: 3px 3px 0 0;
+    margin:  -48px -75px 3px 16px;
+    padding: 0;
     border-radius:4px;
     box-shadow: 2px 2px 4px #6B6B6B;  
   }
-
+ 
   .news_header {
+    background-color: #AF2A2A;
+    color: #FFFFFF;
+    text-decoration: underline;
+    font-style: italic;
+    font-weight:bold;
+    height: 24px;
+    border-radius: 4px 4px 0 0;
+    margin: 0;
+    padding-left: 1em;
+  }
+  
+  .news_header_link {
     margin-bottom: 6px;
     margin-left: 9px;
     font-weight: bold;
     font-style:italic;
+    text-align: left;
     text-decoration:underline !important;
-    color: #686868  !important;
+    color: #FFFFFF  !important;
   }
 
-  .news_list {
-
-  }
-
-  .news_list li {
-    list-style-image:url(images/bullet.png);
-    margin-left: -20px;
-  }
-
-  .news_list hr {
-    margin-left: -35px;
+  .prev_newsitem {
+    border-bottom: 1px dotted #D3D3D3;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    margin-left: 9px;
   }
 
   .news_link {
@@ -111,16 +118,17 @@ li.newslist {
     font-weight:normal;
     font-style:italic;
     line-height: 1.4em  !important;
-    color: #828282;
+    color: #404040;
     margin:0;
     margin-bottom: 4px;
     padding:0;
   }
 
   .news_date {
-    font-size: 80%;
+    font-size: 70%;
     font-style:italic;
     color: #828282 !important;
+    float: right;
   }
 
   /*-------------------------------------------------------*/
@@ -159,5 +167,35 @@ li.newslist {
     font-style:normal;
     color: #686868;
     margin-bottom: 10px;
+  }
+  .anss_del_img {
+    background-image:url(images/delete.gif);
+    margin-top: -10px ;
+    margin-right: -10px ;
+    margin-left: 10px ;
+    float:right;
+  }
+  
+  .anss_del_img:hover {
+    background-image:url(images/delete_hov.gif) !important;
+    margin-top: -10px ;
+    margin-right: -10px ;
+    margin-left: 10px ;
+    float:right;
+  }
+  .anss_edit_img {
+    background-image:url(images/edit.gif);
+    margin-top: -10px ;
+    margin-right: -10px ;
+    margin-left: 20px ;
+    float:right;
+  }
+  
+  .anss_edit_img:hover {
+    background-image:url(images/edit_hov.gif) !important;
+    margin-top: -10px ;
+    margin-right: -10px ;
+    margin-left: 20px ;
+    float:right;
   }
   /*-------------------------------------------------------*/

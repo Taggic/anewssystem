@@ -17,8 +17,12 @@ $lang['no_permission'] = 'Write access denied. You are not allowed to write news
 
 /******************************************************************************/
 // template related text
-$lang['headdescr']  = 'give it an expressive headline';
-$lang['linkdescr']  = 'link the page where the news relate to';
-$lang['startdescr'] = 'first appearance of the article in the list';
-$lang['stopdescr']  = 'on this day the article will disappear';
-$lang['msgdescr']   = 'write a news summary';
+$lang['anchordescr']     = 'unique id to reference the article';
+$lang['headdescr']       = 'give it an expressive headline';
+$lang['linkdescr']       = 'link the page where the news relate to';
+$lang['startdescr']      = 'first appearance of the article in the list';
+$lang['stopdescr']       = 'on this day the article will disappear';
+$lang['msgdescr']        = 'write a news summary';
+$lang['authordescr']     = 'your user name';
+$lang['del_title']       = 'Delete this News record';
+$lang['newsflash_title'] = 'NEWS flash';
