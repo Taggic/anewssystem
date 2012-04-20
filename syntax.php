@@ -145,7 +145,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
       /*------- show user form -----------------------------------------------*/            
             // this will provide the user form to add further news
             // 2. create input form based on template
+        
+            
         if ($ans_conf['param']==='author') {
+            
             $output .= '<span><script type="text/javascript">
                           function count_chars(obj) {
                               document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(message length: " + obj.value.length + " )"
@@ -176,7 +179,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 }
                 else if (trim($fields[0]) == "anchor") {
                         $default_anker = '#'.date("YmdHis");
-                        if((stripos($fields[1],'hidden') === false) && ($this->getConf('hide_anchorID')===false)) {                        
+                        
+                        if((stripos($fields[1],'hidden') === false) && ($this->getConf('hide_anchorID')< 1)) {                       
                             $output .= '<p>'.trim($fields[4]).'
                                           <input class="news_input_'.trim($fields[0]).
                                               '" id="news_input_'.trim($fields[0]).
