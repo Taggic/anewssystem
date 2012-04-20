@@ -176,7 +176,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 }
                 else if (trim($fields[0]) == "anchor") {
                         $default_anker = '#'.date("YmdHis");
-                        if(stripos($fields[1],'hidden') === false) {                        
+                        if((stripos($fields[1],'hidden') === false) && ($this->getConf('hide_anchorID')===false)) {                        
                             $output .= '<p>'.trim($fields[4]).'
                                           <input class="news_input_'.trim($fields[0]).
                                               '" id="news_input_'.trim($fields[0]).
@@ -190,7 +190,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                             $output .= '<input class="news_input_'.trim($fields[0]).
                                               '" id="news_input_'.trim($fields[0]).
                                               '" name="news_input_'.trim($fields[0]).
-                                              '" type="'.trim($fields[1]).
+                                              '" type="hidden'.
                                               '" '.trim($fields[2]). 
                                                  'value="'.$default_anker.'" title="'.trim($this->getLang(trim($fields[5]))).
                                           '" />'.NL;                        
@@ -365,7 +365,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                                 <input type="hidden" name="summary" value="['.$value.'] " />
                                                 <input type="hidden" name="target" value="section" />
                                                 <input type="hidden" name="range" value="'.$start.'-'.$stop.'" />
-                                                <input class="anss_edit_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot2.gif" alt="Edit" title="Edit ..." value="Edit" />
+                                                <input class="anss_edit_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot2.gif" alt="'.$this->getLang('anss_edit_imgttl').'" title="'.$this->getLang('anss_edit_imgttl').'" value="Edit" />
                                           </form>
                                           <span style="width:3em;">&nbsp;</span>';
                                  // add a delete button and $POST
@@ -466,7 +466,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                                 <input type="hidden" name="summary" value="['.$value.'] " />
                                                 <input type="hidden" name="target" value="section" />
                                                 <input type="hidden" name="range" value="'.$start.'-'.$stop.'" />
-                                                <input class="anss_edit_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot2.gif" alt="Edit" title="Edit ..." value="Edit" />
+                                                <input class="anss_edit_img" type="image" src="'.DOKU_BASE.'lib/plugins/anewssystem/images/dot2.gif" alt="'.$this->getLang('anss_edit_imgttl').'" title="'.$this->getLang('anss_edit_imgttl').'" value="Edit" />
                                           </form>
                                           <span style="width:3em;">&nbsp;</span>';
                                  // add a delete button and $POST
