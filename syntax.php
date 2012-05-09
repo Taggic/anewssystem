@@ -150,8 +150,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         if ($ans_conf['param']==='author') {
             
             $output .= '<span><script type="text/javascript">
-                          function count_chars(obj) {
-                              document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(message length: " + obj.value.length + " )"
+                          function count_chars(obj, max) {
+                              if(obj.value.length>max) output = \'<span style="color:red;">\' + obj.value.length + \'</span>\';
+                              else output = obj.value.length;
+                              document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(message length: " + output + " )"
                           }
                        </script></span>';
 
@@ -174,7 +176,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                             ' id="news_input_'.trim($fields[0]).'"'.
                                             ' name="news_input_'.trim($fields[0]).'"'.
                                             ' title="'.trim($this->getLang(trim($fields[5]))).'" '.trim($fields[2]).'"'.
-                                            ' onkeyup="count_chars(this)" >'.
+                                            ' onkeyup="count_chars(this,'.$this->getConf('prev_length').')" >'.
                                       '</textarea></p>'.NL;
                 }
                 else if (trim($fields[0]) == "anchor") {
@@ -279,13 +281,16 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 
       /*------- show perview -------------------------------------------------*/      
         if (strpos($ans_conf['param'], 'flash')!== false) {
-          $info = array();
-          $tmp = substr($ans_conf['param'],strlen('flash')); //strip parameter to get set of add parameter
-          $prefs = explode(',',$tmp);
+          $info        = array();
+          $tmp         = substr($ans_conf['param'],strlen('flash')); //strip parameter to get set of add parameter
+          $prefs       = explode(',',$tmp);
           // $prefs[0] = preview length
           // $prefs[1] = box width
           // $prefs[2] = float option
           // $prefs[3] = max items
+          // $prefs[4] = tags separated by pipe
+          if(!isset($prefs[4])) $tag_flag = true;
+          
           if($prefs[0]<50) $prefs[0] = $this->getConf('prev_length');
           $preview_length = $prefs[0];
           if(! isset($prefs[1])) { 
@@ -326,6 +331,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
              $bFlag = false;
              foreach ($temp_array as $item) {
                     list($key, $value) = split(":",trim($item),2);
+                    $tag_flag = false;
                     
                     if($key=='anchor') {
                             $anchor = trim($value);
@@ -389,9 +395,19 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     elseif($key=='author'){                      
                         $news_date .= ', '. $value;
                     }
+                    elseif(($key=='tags') && (isset($prefs[4]) !== false)) {
+                        $tags = explode(',',$value);
+                        foreach($tags as $tag) {
+                            if(($tag!==false) && (stripos($prefs[4],trim($tag))!==false)){
+                                $tag_flag = true;
+                                break;
+                            }
+                        }
+                    }
              }
+             if(isset($prefs[4]) == false) $tag_flag = true;
              $news_date .=  ')</span><br />'.NL;
-             if(($aFlag === true) && ($bFlag === true)) {
+             if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true)) {
                  $output .= '<div class="prev_newsitem">'.$news_head.$news_date.$preview_string.$ank.'</div>'.NL;
                  $item_counter = $item_counter + 1;                 
                  // stop if max number of items is reached
@@ -405,6 +421,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 
         /* --- Show all news -------------------------------------------------*/
         if (strpos($ans_conf['param'], 'allnews')!== false) {
+          $tmp         = substr($ans_conf['param'],strlen('allnews')); //strip parameter to get set of add parameter
+          $prefs       = explode(',',$tmp);
+          // $prefs[1] = tags filter
           $newsitems = array();
           // this will be called to display all news articles
           $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') );          
@@ -428,7 +447,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 
                  foreach ($temp_array as $item) {
                         list($key, $value) = split(":",trim($item),2);
-                        
+                        $tag_flag = false;
                         if($key=='anchor') {
                             $anchor = trim($value);
                         }
@@ -490,11 +509,20 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         elseif($key=='author'){                      
                             $news_date .= ', '. $value;
                         }
+                        elseif(($key=='tags') && (isset($prefs[1]) !== false)) {
+                            $tags = explode(',',$value);
+                            foreach($tags as $tag) {
+                                if(($tag!==false) && (stripos($prefs[1],trim($tag))!==false)){
+                                    $tag_flag = true;
+                                    break;
+                                }
+                            }
+                        }
                  }
                  $news_date .=  ')</span><br />'.NL;
                  
-                 
-                 if(($aFlag === true) && ($bFlag === true)) {
+                 if(isset($prefs[1]) == false) $tag_flag = true;
+                 if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true)) {
                      $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
                  }    
           }

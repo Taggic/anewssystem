@@ -45,7 +45,7 @@ li.newslist {
   }
   
   .news_input_start {
-    margin-left: 5px;
+    margin-left: 3px;
   }
   
   .news_input_stop  {
@@ -53,6 +53,14 @@ li.newslist {
   }
   
   .news_input_textarea {
+  }
+
+  .news_input_author  {
+    margin-left: 60px;
+  }
+
+  .news_input_tags  {
+    margin-left: 75px;
   }
   
   .nws_charcount {
