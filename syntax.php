@@ -151,9 +151,13 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
             
             $output .= '<span><script type="text/javascript">
                           function count_chars(obj, max) {
-                              if(obj.value.length>max) output = \'<span style="color:red;">\' + obj.value.length + \'</span>\';
-                              else output = obj.value.length;
-                              document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(message length: " + output + " )"
+                              var data = obj.value;
+                              var extract = data.split(" ");
+                              var bextract = data.split("\n");
+                              var cextract = extract.length + bextract.length -1;
+                              if(cextract>max) output = \'<span style="color:red;">\' + cextract + \'</span>\';
+                              else output = cextract;
+                              document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(word count: " + output + " of " + max + " )"
                           }
                        </script></span>';
 
@@ -170,7 +174,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         $output .= '<p>'.trim($fields[4]); 
                         $output .= '<label class="nws_charcount" 
                                              id="nws_charcount"
-                                             name="nws_charcount">&nbsp;&nbsp;(message length: 0 )</label><br />';   
+                                             name="nws_charcount">&nbsp;&nbsp;(word count: 0 of '.$this->getConf('prev_length').' )</label><br />';   
 
                         $output .= '<textarea class="news_input_textarea"'. 
                                             ' id="news_input_'.trim($fields[0]).'"'.
@@ -291,8 +295,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           // $prefs[4] = tags separated by pipe
           if(!isset($prefs[4])) $tag_flag = true;
           
-          if($prefs[0]<50) $prefs[0] = $this->getConf('prev_length');
+          if($prefs[0]<10) $prefs[0] = $this->getConf('prev_length');
           $preview_length = $prefs[0];
+
           if(! isset($prefs[1])) { 
             $prefs[1]='';
             $item_width = '';}
@@ -344,9 +349,35 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     elseif(($key=='stop') && strtotime(trim($value)) > time()) {
                         $bFlag = true;
                     }
-                    elseif($key=='text'){                      
-//                        $prvw_string = substr( trim( preg_replace ('/\<.*?\>/', ' ', $value ) ), 0, $preview_length );
-                        $prvw_string = p_render('xhtml',p_get_instructions($value),$info);
+                    elseif($key=='text'){
+                        if($bFlag !== true) break;                      
+                        // replace hyperlinks
+                        $links = array();
+                        $pattern = '/\[\[.*?\]\]/i';
+                        $links = $this->replace_links($pattern, $value);
+                        
+                        // replace media links
+                        $linkx = array();
+                        $pattern = '/\{\{.*?\}\}/i';
+                        $linkx = $this->replace_links($pattern, $value);
+                        
+                        // shrink the output according settings
+                        //$prvw_string = substr( preg_replace ('/\<.*?\>/', ' ', $value ) , 0, $preview_length );
+                        $check = explode(' ', $value);
+                        $i=0;
+                        $prvw_string ='';
+                        foreach($check as $a) {
+                            $prvw_string .= $a.' ';
+                            $i++; 
+                            if($i>$preview_length) {break;}
+                        }
+                        if(count($check)-1>$preview_length) $prvw_string .= ' ...';
+                        
+                        // replace placeholder
+                        $links = $this->replace_placeholder($links, $prvw_string, 'url');
+                        $linkx = $this->replace_placeholder($linkx, $prvw_string, 'medi');
+                                                
+                        $prvw_string = p_render('xhtml',p_get_instructions($prvw_string),$info);
                         $preview_string = '<span class="news_preview">' . $prvw_string .'</span>'. NL;
                     }
                     // head has to be before the link in the template !
@@ -534,5 +565,37 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $renderer->doc .= msg('Syntax of anewssystem plugin detected but an unknown parameter  ['.$ans_conf['param'].'] was provided.', -1);
         }
     }
+//---------------------------------------------------------------------------------------
+    // flatten the hierarchical arry to store path + file at first "column"
+    function array_flat($array) {   
+        $out=array();
+        foreach($array as $k=>$v){  
+            if(is_array($array[$k]))  { $out=array_merge($out,$this->array_flat($array[$k])); }
+            else  { $out[]=$v; }
+        }     
+        return $out;
+    }
+//---------------------------------------------------------------------------------------
+    function replace_links($pattern, &$value) {
+        // check for links and replace them by placeholder
+        preg_match_all($pattern, $value, $links);
+        $in=0;
+        foreach($links[0] as $link) {
+            $in++;
+            $value = str_replace($link,'url'.$in,$value);
+        }
+        return $links;
+    
+    }
+//---------------------------------------------------------------------------------------
+    function replace_placeholder($links, &$prvw_string, $r_string) {
+        $in=0;
+        foreach($links[0] as $link) {
+            $in++;
+            $prvw_string = str_replace($r_string.$in,$link,$prvw_string);
+        }
+        return $links;
+    }
+//---------------------------------------------------------------------------------------
 }
 ?>
