@@ -7,6 +7,8 @@
  * @author     Taggic <taggic@t-online.de>
  */
  
+if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
+if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
 if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../').'/');
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 if(!defined('DOKU_DATA')) define('DOKU_DATA',DOKU_INC.'data/pages/');
@@ -61,7 +63,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         $ans_conf['param']        = $params;
         
         if (!$params) {
-          msg('Syntax of anewssystem detected but an unknown parameter was attached.', -1);          
+          msg('Syntax of anewssystem detected but unknown parameter was attached.', -1);          
         }
         else { return $ans_conf;}        
      }
@@ -70,6 +72,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 * @author Taggic <taggic@t-online.de>
 */   
     function render($mode, &$renderer, $ans_conf) {
+        global $ID;
         $xhtml_renderer = new Doku_Renderer_xhtml();
         $records      = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
         unset($records[0]);
@@ -91,7 +94,6 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
             $delete_anchor = $_POST["anss_del_anchor"];
             
             if( (strlen($post_prefix)>2) && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
-
                 // this will be called to store the news article to the others
                 $id_count = 1;
                 foreach( $_POST as $postkey => $postvalue ) {
@@ -112,14 +114,12 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     }
                 }
                   
-//                $newrecord .= "\n----\n\n";
                 $newrecord = '====== '.$_POST['news_input_head'].' ======'.chr(10).chr(10).$newrecord.chr(10);
                 $oldrecord = rawWiki($targetpage);
 
                 saveWikiText($targetpage, $newrecord.$oldrecord, "New entry", true);
                 $_POST["xs-".$prefix] = '';
                 msg($this->getLang('news_added'),1);
-
             }
             elseif( (strlen($post_prefix)>2) && (auth_quickaclcheck($targetpage) < AUTH_EDIT) ) {
                 msg($this->getLang('no_permission'),-1);
@@ -144,9 +144,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
             }    
       /*------- show user form -----------------------------------------------*/            
             // this will provide the user form to add further news
-            // 2. create input form based on template
-        
-            
+            // 2. create input form based on template          
         if ($ans_conf['param']==='author') {
             
             $output .= '<span><script type="text/javascript">
@@ -284,7 +282,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         }
 
       /*------- show perview -------------------------------------------------*/      
-        if (strpos($ans_conf['param'], 'flash')!== false) {
+        elseif (strpos($ans_conf['param'], 'flash')!== false) {
           $info        = array();
           $tmp         = substr($ans_conf['param'],strlen('flash')); //strip parameter to get set of add parameter
           $prefs       = explode(',',$tmp);
@@ -351,15 +349,15 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     }
                     elseif($key=='text'){
                         if($bFlag !== true) break;                      
-                        // replace hyperlinks
-                        $links = array();
-                        $pattern = '/\[\[.*?\]\]/i';
-                        $links = $this->replace_links($pattern, $value);
-                        
                         // replace media links
                         $linkx = array();
                         $pattern = '/\{\{.*?\}\}/i';
-                        $linkx = $this->replace_links($pattern, $value);
+                        $linkx = $this->replace_links($pattern, $value, 'medi');
+                        
+                        // replace hyperlinks
+                        $links = array();
+                        $pattern = '/\[\[.*?\]\]/i';
+                        $links = $this->replace_links($pattern, $value, 'url');
                         
                         // shrink the output according settings
                         //$prvw_string = substr( preg_replace ('/\<.*?\>/', ' ', $value ) , 0, $preview_length );
@@ -449,13 +447,129 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $output .= '</div></div>'.NL.NL;
           $renderer->doc .= $output;
         }
+        /* --- Display a cloud of News Tags --------------------------------*/
+        elseif (strpos($ans_conf['param'], 'cloud')!== false) {
+          $tmp         = substr($ans_conf['param'],strlen('cloud')); //strip parameter to get set of add parameter          
+          $oldrecord   = rawWiki($targetpage);
+          $entries = explode("======",$oldrecord);
+          // loop through configured all news page
+          foreach($entries as $entry) {
+              // split news block into line items
+              $temp_array = explode("\n  * ",$entry);
+              unset($temp_array[0]);
+              $aFlag    = false;
+              $bFlag    = false;
+              $tag_flag = false;
+              
+              // if perishing date is not exceeded then collect the tags
+              foreach ($temp_array as $item) {
+                  list($key, $value) = split(":",trim($item),2);
+                  if(($key=='start') && strtotime(trim($value)) < time()) {
+                      $aFlag = true;
+                      $value = date($this->getConf('d_format'), strtotime($value));
+                      $news_date = '<span class="news_date"> ('. $value ;
+                  }
+                  elseif(($key=='stop') && strtotime(trim($value)) > time()) {
+                      $bFlag = true;
+                  }
+                  if(($key=='tags') && ($aFlag === true) && ($bFlag === true)) {
+                      if($bFlag !== true) break;
+                      $aFlag = false;
+                      $bFlag = false;
+                      $tags  = explode(',',$value);
+                      if(count($tags) >0 ) {
+                          foreach($tags as $tag) {
+                              $tags_result[$tag]++;
+                          }
+                          break;
+                      }
+                  }
+              }
+          }    
 
+          // evaluate the styling parameters    
+          $tokens = preg_split('/\s+/', $tmp,-1, PREG_SPLIT_NO_EMPTY);   
+          $div_class = 'newsclouddiv';
+          foreach ($tokens as $token) {
+              
+              if (preg_match('/^\d*\.?\d+(%|px|em|ex|pt|cm|mm|pi|in)$/', $token)) {
+                $styles .= ' width: '.$token.';';
+                continue;
+              }
+              if (preg_match('/^(
+                  (\#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}))|        #color value
+                  (rgb\(([0-9]{1,3}%?,){2}[0-9]{1,3}%?\))     #rgb triplet
+                  )$/x', $token)) {
+                $styles .= ' background-color: '.$token.';';
+                continue;
+              }
+              if((stripos($token,'tleft')    !== false) || 
+                 (stripos($token,'tright')   !== false) || 
+                 (stripos($token,'tcenter')  !== false) ||
+                 (stripos($token,'tjustify') !== false) ||
+                 (stripos($token,'tinherit') !== false)) {
+                $styles .= ' text-align: '.substr(trim($token),1).';';
+                //style the tabs properly
+                if(stripos($token,'tright')!== false) {
+                  $tab_right = "";
+                  $tab_left = DOKU_TAB;
+                }
+                else {
+                  $tab_right = "";
+                  $tab_left = DOKU_TAB;
+                }
+                continue;
+              }
+              if((stripos($token,'fleft')    !== false) || 
+                 (stripos($token,'fright')   !== false) || 
+                 (stripos($token,'fnone')    !== false) ||
+                 (stripos($token,'finherit') !== false)) {
+                $styles .= ' float: '.substr(trim($token),1).';';
+                continue;
+              }
+              if((stripos($token,'uppercase')  !== false) || 
+                 (stripos($token,'capitalize') !== false) || 
+                 (stripos($token,'lowercase')  !== false)) {
+                $styles .= ' text-transform: '.$token.';';
+                continue;
+              }
+              if(stripos($token,'newsclouddiv')    !== false) {
+                $div_class = $token;
+                continue;
+              }
+          }
+          // output the tags as links
+          $output  = '<div class="'.$div_class.'" style="'.$styles.'">'.NL;
+          // loop through the tags array and evaluate the size per tag
+          $min = 1000;
+          $max = 1;
+          foreach($tags_result as $tag => $val) {
+              $min = min($val,$min);
+              $max = max($val,$max);
+          }
+          $delta = ($max-$min)/16; 
+          foreach($tags_result as $tag => $val) {
+              if ($val < $min+round($delta)) $class = 'newscloud1';
+              elseif ($val < $min+round(2*$delta)) $class = 'newscloud2';
+              elseif ($val < $min+round(4*$delta)) $class = 'newscloud3';
+              elseif ($val < $min+round(8*$delta)) $class = 'newscloud4';
+              else $class = 'newscloud5';
+              $output .= $tab_left.'<a href="'.DOKU_URL.'doku.php?id='.$this->getConf('news_output').'&tag='.trim($tag).'" class="' . $class .'"title="'.$val.'">'.$tag.'</a>'.$tab_right.NL;
+          }
+          $output .= '</div>'.NL;  
+          $renderer->doc .= $output;
+        }
         /* --- Show all news -------------------------------------------------*/
-        if (strpos($ans_conf['param'], 'allnews')!== false) {
-          $tmp         = substr($ans_conf['param'],strlen('allnews')); //strip parameter to get set of add parameter
-          $prefs       = explode(',',$tmp);
+        elseif (strpos($ans_conf['param'], 'allnews')!== false) {
+          // check if page ID was called with tag filter
+          $tmp         = ','.$_GET['tag']; // this will overrule the page syntax setting
+          if(strlen($tmp)<1) {
+              $tmp     = substr($ans_conf['param'],strlen('allnews')); //strip parameter to get set of add parameter
+          }
           // $prefs[1] = tags filter
-          $newsitems = array();
+          $prefs       = explode(',',$tmp);
+
+          $newsitems   = array();
           // this will be called to display all news articles
           $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') );          
           $output = '<div class="allnews_box">'.NL;
@@ -561,8 +675,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $renderer->doc .= $output;
         }
         // --- faulty syntax ---
-        elseif (($ans_conf['param']!='author') && (strpos($ans_conf['param'], 'flash')=== false)) {
-          $renderer->doc .= msg('Syntax of anewssystem plugin detected but an unknown parameter  ['.$ans_conf['param'].'] was provided.', -1);
+        else {
+          $renderer->doc .= msg('Syntax of anewssystem plugin detected but unknown parameter  ['.$ans_conf['param'].'] was provided.', -1);
         }
     }
 //---------------------------------------------------------------------------------------
@@ -576,13 +690,13 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         return $out;
     }
 //---------------------------------------------------------------------------------------
-    function replace_links($pattern, &$value) {
+    function replace_links($pattern, &$value, $r_string) {
         // check for links and replace them by placeholder
         preg_match_all($pattern, $value, $links);
         $in=0;
         foreach($links[0] as $link) {
             $in++;
-            $value = str_replace($link,'url'.$in,$value);
+            $value = str_replace($link,$r_string.$in,$value);
         }
         return $links;
     
