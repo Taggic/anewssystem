@@ -665,8 +665,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         }
                  }
                  $news_date .=  ')</span><br />'.NL;
-                 
-                 if(isset($prefs[1]) == false) $tag_flag = true;
+                           
+                 if((isset($prefs[1]) === false) || (strlen($prefs[1]) <2)) $tag_flag = true;                 
                  if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true)) {
                      $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
                  }    
