@@ -12,3 +12,4 @@ $lang['news_datafile']  = 'Imposta il percorso del file namespace:newsdata';
 $lang['prev_length']    = 'Definisci la quantità di parole disponibili per la notizia';
 $lang['newsflash_link'] = 'Crea collegamento NOVITA\'';
 $lang['hide_anchorID']  = 'Nascondi ID collegamento';
+$lang['convert']        = 'Collegare un servizio on-line Thumbshots';

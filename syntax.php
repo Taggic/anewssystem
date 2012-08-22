@@ -309,7 +309,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           
           $newsitems = array();
           // this will be called to display a preview
-          $output = '<div class="news_box" '.$prefs[1].'>';
+          $output  = '<div class="news_box" '.$prefs[1].'>';
           if($this->getConf('newsflash_link') == false) {
               $output .= '<div  class="news_header">'.$this->getLang('newsflash_title').'</div>'.NL;
           }
@@ -317,7 +317,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
               $output .= '<div  class="news_header"><a class="news_header_link" href="'. $allnewsdata .'">'.$this->getLang('newsflash_title').'</a></div>'.NL;
           }
           $output .= '<div class="news_list" '.$item_width.'">'.NL;
-
+          
           // 1. read news file (e.g. news:newsdata.txt)
           $av = 0;
           $oldrecord = rawWiki($targetpage);
@@ -380,7 +380,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     }
                     // head has to be before the link in the template !
                     elseif($key=='head'){
-                        $news_head = $value;                        
+                        $news_head = $value;                                              
                              // add edit button to section edit the article if edit  
                              // permission is given to that current user for this ID
                              if($current_usr["perm"]>1) {
@@ -394,7 +394,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                         break;
                                     }                                    
                                  }
-                                 // assamble the pieces for the button and form.
+                                 // assemble the pieces for the button and form.
                                  $url = wl($this->getConf('news_datafile'),'',true);
 
                                  $ank = '<div><form class="btn_secedit" 
@@ -419,7 +419,30 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                              else $ank='';
                     }
                     elseif($key=='link'){                      
-                        $news_head = '<a class="news_link" href="'.$value.'">'. $news_head .'</a>'.NL;
+                        $prev_id++;
+                        $news_head   = '<a class="news_link" href="'.$value.'"  id="news_link'.$prev_id.'" rel="subcontent'.$prev_id.'">'. $news_head .'</a>'.NL;
+                        // generate an overlap div with Thumbshot picture if link is provided by conf
+                        if($this->getConf('convert')) {
+                            if(is_string($response)) {
+    	      		               msg($response,-1);
+    	      	              }
+                            else {
+                              list($link,$image) = $response;
+                              $anID = explode("id=",$value);
+                              if($anID[1]) $theLink = DOKU_URL.'doku.php?id='.$anID[1];
+                              else $theLink = $value;
+                              $theLink = sprintf($this->getConf('convert'), $theLink);
+                              $news_head  .= '
+                              <DIV id="subcontent'.$prev_id.'" class="news_subcontent">
+                                  <a class="news_link" href="'.$value.'" target="_blank">
+                                    <img class="news_subcontent_pic" alt="News" src="'.$theLink.'" a="">
+                                  </a><br />
+                              </DIV>'.NL;
+                              $news_head  .= '<script type="text/javascript">
+                                                dropdowncontent.init("news_link'.$prev_id.'", "left-bottom", 500, "mouseover")
+                                             </script>'.NL;
+                            }
+                        }
                     }
                     elseif($key=='author'){                      
                         $news_date .= ', '. $value;
@@ -435,7 +458,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     }
              }
              if(isset($prefs[4]) == false) $tag_flag = true;
-             $news_date .=  ')</span><br />'.NL;
+             $news_date  .=  ')</span><br />'.NL;
              if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true)) {
                  $output .= '<div class="prev_newsitem">'.$news_head.$news_date.$preview_string.$ank.'</div>'.NL;
                  $item_counter = $item_counter + 1;                 
@@ -444,14 +467,15 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     break; }
              }    
           }
-          $output .= '</div></div>'.NL.NL;
+          $output        .= '</div></div>'.NL.NL;
+          $output         = '<script type="text/javascript" src="'.DOKU_URL.'lib/plugins/anewssystem/dropdowncontent.js"></script>'.$output; 
           $renderer->doc .= $output;
         }
         /* --- Display a cloud of News Tags --------------------------------*/
         elseif (strpos($ans_conf['param'], 'cloud')!== false) {
           $tmp         = substr($ans_conf['param'],strlen('cloud')); //strip parameter to get set of add parameter          
           $oldrecord   = rawWiki($targetpage);
-          $entries = explode("======",$oldrecord);
+          $entries     = explode("======",$oldrecord);
           // loop through configured all news page
           foreach($entries as $entry) {
               // split news block into line items
@@ -710,6 +734,5 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         }
         return $links;
     }
-//---------------------------------------------------------------------------------------
 }
 ?>
