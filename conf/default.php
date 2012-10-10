@@ -9,6 +9,7 @@ $conf['news_output']       = 'news:allnewsdata';
 $conf['prev_length']       = '500';
 $conf['newsflash_link']    = 1;
 $conf['hide_anchorID']     = 1;
+$conf['soapp']             = 0;                 // soapp = show one article per page (instead of all news)
 $conf['convert']           = 'http://fadeout.de/thumbshot-pro/?scale=3&url=%s&effect=2'; //the online service, which converts the linked page into a preview picture
 // http://www.thumbshots.de/cgi-bin/show.cgi?url=%s
 // http://images.websnapr.com/?size=s&nocache=81&url=%s

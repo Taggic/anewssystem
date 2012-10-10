@@ -115,7 +115,6 @@ li.newslist {
   .news_link {
     font-size:9pt;
     color: #5244D9 !important;
-    font: normal;
     font-weight:normal;
     font-style:italic;
     line-height:1.6em  !important;
@@ -138,6 +137,13 @@ li.newslist {
     color: #828282 !important;
     float: right;
     margin-left: 1em;
+  }
+
+  .news_date_a {
+    font-size: 70%;
+    font-style:italic !important;
+    color: #828282 !important;
+    margin-left: 0,8em;
   }
 
   .news_subcontent {
@@ -184,7 +190,6 @@ li.newslist {
   .allnews_link {
     font-size:11pt;
     color: #5244D9 !important;
-    font: normal;
     font-weight:bold;
     font-style:italic;
   }

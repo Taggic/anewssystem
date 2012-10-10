@@ -9,7 +9,8 @@
 // for the configuration manager
 $lang['d_format']       = 'Definisci il formato data (es. Y-m-d)';
 $lang['news_datafile']  = 'Imposta il percorso del file namespace:newsdata';
-$lang['prev_length']    = 'Definisci la quantità di parole disponibili per la notizia';
+$lang['prev_length']    = 'Definisci la quantitÃ  di parole disponibili per la notizia';
 $lang['newsflash_link'] = 'Crea collegamento NOVITA\'';
 $lang['hide_anchorID']  = 'Nascondi ID collegamento';
+$lang['soapp']          = 'Visualizzare solo un elemento, invece di tutti (-> tutte le news)';
 $lang['convert']        = 'Collegare un servizio on-line Thumbshots';

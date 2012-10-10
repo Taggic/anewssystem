@@ -12,4 +12,5 @@ $lang['news_datafile']  = 'Set the path to the namespace:newsdata file';
 $lang['prev_length']    = 'Define the quantity of previewed words per news post';
 $lang['newsflash_link'] = 'provide News flash link';
 $lang['hide_anchorID']  = 'hide Anchor ID';
+$lang['soapp']          = 'show only one article per page';       // soapp = show one article per page (instead of all news)
 $lang['convert']        = 'Link a thumbshots online service';                                                                                                       

@@ -182,7 +182,11 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                       '</textarea></p>'.NL;
                 }
                 else if (trim($fields[0]) == "anchor") {
-                        $default_anker = '#'.date("YmdHis");
+
+                        $default_anker = date("YmdHis");
+                        if($this->getConf('soapp')>0) $link_anker = '&anchor='.$default_anker; // to show only one article only on a page
+                        else $link_anker = '#'.$default_anker;  // to show all news at one page but scroll to the anchor position
+                        $default_anker = '#'.$default_anker;
                         
                         if((stripos($fields[1],'hidden') === false) && ($this->getConf('hide_anchorID')< 1)) {                       
                             $output .= '<p>'.trim($fields[4]).'
@@ -247,7 +251,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                       '" /></p>'.NL;
                 }
                 else if (trim($fields[1]) == "link") {
-                        $default_value = wl($allnewsdata1).$default_anker;
+                        $default_value = wl($allnewsdata1).$link_anker;
                         $output .= '<p>'.trim($fields[4]).'
                                       <input class="news_input_'.trim($fields[0]).
                                           '" id="news_input_'.trim($fields[0]).
@@ -584,15 +588,23 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $renderer->doc .= $output;
         }
         /* --- Show all news -------------------------------------------------*/
-        elseif (strpos($ans_conf['param'], 'allnews')!== false) {
+        elseif ((strpos($ans_conf['param'], 'allnews')!== false) || (strpos($ans_conf['param'], 'archive')!== false)) {
           // check if page ID was called with tag filter
-          $tmp         = ','.$_GET['tag']; // this will overrule the page syntax setting
-          if(strlen($tmp)<1) {
-              $tmp     = substr($ans_conf['param'],strlen('allnews')); //strip parameter to get set of add parameter
-          }
-          // $prefs[1] = tags filter
-          $prefs       = explode(',',$tmp);
+          $tmp         = ','.$_GET['tag'];    // this will overrule the page syntax setting
 
+          
+          if(strlen($tmp)<2) {
+              // strip parameter to get set of add parameter
+              // there exist either 'tag' or 'anchor', never both at the same time
+              $tmp     = substr($ans_conf['param'],strlen('allnews')); 
+          }
+          $prefs           = explode(',',$tmp); // one or multiple tag filters: $prefs[1] ... [n]
+          $prefs['anchor'] = $_GET['anchor'];   // this will overrule the page syntax setting to 
+                                                // show just the one article instead all of them
+          
+          // necessary for the back link of a show one article per page (SOAPP)
+          if($_GET['archive']=='archive') $ans_conf['param'] = 'archive';
+          
           $newsitems   = array();
           // this will be called to display all news articles
           $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') );          
@@ -623,7 +635,11 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         elseif(($key=='start') && strtotime(trim($value)) < time()) {
                             $aFlag = true;
                             $value = date($this->getConf('d_format'), strtotime($value));
-                            $news_date = '<span class="news_date"> ('. $value ;
+                            
+                            if (strpos($ans_conf['param'], 'archive')!== false) {
+                                 $news_date = '<span class="news_date_a"> ('. $value;
+                            }
+                            else $news_date = '<span class="news_date"> ('. $value ;
                         }
                         elseif(($key=='stop') && strtotime(trim($value)) > time()) {
                             $bFlag = true;
@@ -673,8 +689,12 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                              else $ank='';
                         }
                         elseif($key=='link'){                      
-                            $news_head = '<span class="allnews_head">'. $news_head .'</span>'.NL;
+                            if (strpos($ans_conf['param'], 'archive')!== false) {
+                                 $news_head = '<a href="'.$value.'">'. $news_head .'</a>'.NL;
+                            }
+                            else $news_head = '<span class="allnews_head"><a name="'.str_ireplace("#","",$anchor).'">'. $news_head .'</a></span>'.NL;
                         }
+
                         elseif($key=='author'){                      
                             $news_date .= ', '. $value;
                         }
@@ -691,13 +711,34 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                  $news_date .=  ')</span><br />'.NL;
                            
                  if((isset($prefs[1]) === false) || (strlen($prefs[1]) <2)) $tag_flag = true;                 
-                 if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true)) {
+                 if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true) && (strpos($ans_conf['param'], 'archive') === false) && (isset($prefs['anchor']) === false)) {
                      $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
-                 }    
+                 }
+                 elseif(isset($prefs['anchor'])===true) {
+                      // show the single article independently if it is current or outdated
+                      $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
+                 }                 
+                 elseif (($aFlag === true) && ($tag_flag === true) && (strpos($ans_conf['param'], 'archive')!== false)) {
+                    // list all news stories as headline with date linked to the story itself
+                    $output .= $news_date.NL.$news_head.'<br />'.NL;
+                }
+                // --- just ouput only the linked article on the page ----------
+                if(strlen($anchor)>2) {
+                  if(stripos($anchor,$prefs['anchor']) !== false) {
+                      $output .= '<a class"wikilink" href="'.wl($ID).'&archive=archive"> News archive </a>';
+                      break;  // due to the single linked article is loaded into $output
+                  }
+                }
+                if(isset($prefs['anchor']) === true) {
+                   $output = '';  // to strip away all other articles
+                }   
           }
-          $output .= '</div><div style="clear: both;"></div>'.NL.NL;
+          
+          // hack due to there is one closing div to much (and I don't know where it is coming from)
+          if(isset($prefs['anchor']) === true) $output .= '<div style="clear: both;"></div>'.NL.NL; 
+          else $output .= '</div><div style="clear: both;"></div>'.NL.NL;
           $renderer->doc .= $output;
-        }
+        }       
         // --- faulty syntax ---
         else {
           $renderer->doc .= msg('Syntax of anewssystem plugin detected but unknown parameter  ['.$ans_conf['param'].'] was provided.', -1);
