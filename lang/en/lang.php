@@ -28,3 +28,4 @@ $lang['tagdescr']        = 'as option for the syntax line, separate by pipe or b
 $lang['del_title']       = 'Delete this News record';
 $lang['newsflash_title'] = 'NEWS flash';
 $lang['anss_edit_imgttl']= 'Edit';
+$lang['lnk_back']        = '&laquo; back';

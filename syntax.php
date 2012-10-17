@@ -615,6 +615,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 //          $entries = explode("\n----\n\n",$oldrecord);
           $entries = explode("======",$oldrecord);
           $info = array();
+          $yh_level = $this->getConf('yh_level');
+          $mh_level = $this->getConf('mh_level');
+          $h_level = $this->getConf('h_level');
                     
           foreach($entries as $entry) {
              // split news block into line items
@@ -635,7 +638,6 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         elseif(($key=='start') && strtotime(trim($value)) < time()) {
                             $aFlag = true;
                             $value = date($this->getConf('d_format'), strtotime($value));
-                            
                             if (strpos($ans_conf['param'], 'archive')!== false) {
                                  $news_date = '<span class="news_date_a"> ('. $value;
                             }
@@ -646,7 +648,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         }
                         elseif($key=='text'){                      
                             // parse value for DW syntax ?
-                            $preview_string = p_render('xhtml',p_get_instructions($value),$info);
+                            $preview_string = '<div class="level'.$h_level.'">'.p_render('xhtml',p_get_instructions($value),$info).'</div>'.NL;
 //                            $preview_string = '<div class="all_news_article">' . $preview_string . '</div>'.NL;
                         }
                         // head has to be before the link in the template !
@@ -665,7 +667,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                         break;
                                     }                                    
                                  }
-                                 // assamble the pieces for the button and form.
+                                 // assemble the pieces for the button and form.
                                  $url = wl($this->getConf('news_datafile'),'',true);
                                  $ank = '<div><form class="btn_secedit" 
                                               method="post" 
@@ -689,10 +691,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                              else $ank='';
                         }
                         elseif($key=='link'){                      
-                            if (strpos($ans_conf['param'], 'archive')!== false) {
-                                 $news_head = '<a href="'.$value.'">'. $news_head .'</a>'.NL;
-                            }
-                            else $news_head = '<span class="allnews_head"><a name="'.str_ireplace("#","",$anchor).'">'. $news_head .'</a></span>'.NL;
+                            $news_head = '<a href="'.$value.'" id="'.$value.'" name="'.$value.'">'. $news_head .'</a>'.NL;
                         }
 
                         elseif($key=='author'){                      
@@ -708,24 +707,59 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                             }
                         }
                  }
-                 $news_date .=  ')</span><br />'.NL;
-                           
+                 
+                 $news_date .=  ')</span>'.NL;
+
                  if((isset($prefs[1]) === false) || (strlen($prefs[1]) <2)) $tag_flag = true;                 
+                 
                  if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true) && (strpos($ans_conf['param'], 'archive') === false) && (isset($prefs['anchor']) === false)) {
-                     $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
+                     $output .= '<div>'.NL.'<h'.$h_level.'>'.$news_head.$news_date.'</h'.$h_level.'>'.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
                  }
                  elseif(isset($prefs['anchor'])===true) {
                       // show the single article independently if it is current or outdated
-                      $output .= '<div>'.NL.$news_head.NL.$news_date.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
+                      $output .= '<div>'.NL.'<h'.$h_level.'>'.$news_head.$news_date.'</h'.$h_level.'>'.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
                  }                 
                  elseif (($aFlag === true) && ($tag_flag === true) && (strpos($ans_conf['param'], 'archive')!== false)) {
-                    // list all news stories as headline with date linked to the story itself
-                    $output .= $news_date.NL.$news_head.'<br />'.NL;
+                    // list all news stories as headline (incl. date + author) linked to the story itself
+                    $elt = explode(",",$news_date);
+                    $elt[0] = trim(strip_tags(str_replace('(','',$elt[0])));
+                    $elt[0] = date('F,Y',strtotime($elt[0]));
+                    list($new_month,$new_year) = explode(',',$elt[0]); 
+                    
+                    // idea is that all stories are createdone after the other 
+                    // and the order within newsdata is according the start date
+                    // !!! There is no sort algorithm for year and month implemented !!!
+                    // to do such would lead into re-development of the plugin
+                    if($old_year  !== $new_year)  {
+                      if($old_year  !== '') $close_ytag = "</div>".NL;
+                      $output .= $close_ytag.'<h'.$yh_level.'>'.$new_year.'</h'.$yh_level.'><div class="level'.$yh_level.'">'; 
+                      $old_year  = $new_year;
+                    }
+                    
+                    if($old_month  !== $new_month) {
+                      if($old_month  !== '') $close_mtag = "</div>".NL;
+                      $output .= $close_mtag.'<h'.$mh_level.'>'.$new_month.'</h'.$mh_level.'><div class="level'.$mh_level.'">';
+                      $old_month = $new_month; 
+                    }
+                     
+                    $output .= trim($news_date).'<br />'.$news_head.'<br />'.NL;
+                    $close_ytag = "";
+                    $close_mtag = ""; 
                 }
                 // --- just ouput only the linked article on the page ----------
-                if(strlen($anchor)>2) {
+                $archive_lnkTitle = $this->getConf('lnk_newsarchive');
+                if($archive_lnkTitle=='') $archive_lnkTitle = "News Archive";
+                if((strlen($anchor)>2)) {
                   if(stripos($anchor,$prefs['anchor']) !== false) {
-                      $output .= '<a class"wikilink" href="'.wl($ID).'&archive=archive"> News archive </a>';
+                      $output .= '<script type="text/javascript" src="backlink.js"></script>';
+                      $output .= '<SCRIPT TYPE="text/javascript">
+                                    <!--
+                                    var gb = new backlink();
+                                    gb.write();
+                                    //-->
+                                  </SCRIPT>
+                                  <a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>';
+                      $output .= '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a>';
                       break;  // due to the single linked article is loaded into $output
                   }
                 }
@@ -734,7 +768,6 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 }   
           }
           
-          // hack due to there is one closing div to much (and I don't know where it is coming from)
           if(isset($prefs['anchor']) === true) $output .= '<div style="clear: both;"></div>'.NL.NL; 
           else $output .= '</div><div style="clear: both;"></div>'.NL.NL;
           $renderer->doc .= $output;

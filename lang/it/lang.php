@@ -28,3 +28,4 @@ $lang['tagdescr']        = 'Opzione della riga di sintassi, separata da "pipe" o
 $lang['del_title']       = 'Elimina questa notizia';
 $lang['newsflash_title'] = 'NOVITA\'';
 $lang['anss_edit_imgttl']= 'Modifica';
+$lang['lnk_back']        = 'Indietro';

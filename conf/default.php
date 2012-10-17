@@ -10,6 +10,10 @@ $conf['prev_length']       = '500';
 $conf['newsflash_link']    = 1;
 $conf['hide_anchorID']     = 1;
 $conf['soapp']             = 0;                 // soapp = show one article per page (instead of all news)
+$conf['yh_level']          = 2;                 // headline level for year clusetr of All News articles
+$conf['mh_level']          = 3;                 // headline level for month clusetr of All News articles
+$conf['h_level']           = 4;                 // headline level for All News articles itself
+$conf['lnk_newsarchive']   = 'News Archive &raquo;';    // text for archive link
 $conf['convert']           = 'http://fadeout.de/thumbshot-pro/?scale=3&url=%s&effect=2'; //the online service, which converts the linked page into a preview picture
 // http://www.thumbshots.de/cgi-bin/show.cgi?url=%s
 // http://images.websnapr.com/?size=s&nocache=81&url=%s
