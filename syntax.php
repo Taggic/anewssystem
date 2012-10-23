@@ -92,6 +92,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
             $post_prefix   = $_POST["xs-".$prefix];
             $delete_record = $_POST["anss_del_record"];
             $delete_anchor = $_POST["anss_del_anchor"];
+//            msg($delete_record." = |".$delete_anchor.'|',0);
+            
+            if(!isset($delete_anchor)) $delete_anchor = $delete_record; // if anchor field was deleted on input 
+            
             
             if( (strlen($post_prefix)>2) && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
                 // this will be called to store the news article to the others
@@ -125,22 +129,23 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 msg($this->getLang('no_permission'),-1);
             }
       /*------- delete a news record -----------------------------------------*/
-            if( (strlen($delete_record)>2) && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
+            elseif( (strlen($delete_record)>2) && (auth_quickaclcheck($targetpage) >= AUTH_EDIT) ) {
                 $raw_records = rawWiki($targetpage);
-                $records = explode("====== ",$raw_records);
-                foreach($records as $record) {
+                $news_records = explode("====== ",$raw_records);
+                foreach($news_records as $record) {
                   if((stripos($record, $delete_record)!==false) && (stripos($record, $delete_anchor)!==false))  {
-//                    echo "Delete: ".$delete_record."<br />";
-//                    echo "Anchor: ".$delete_anchor."<br />";
+                    // inform user
+//                    msg("Delete: $record = ".$delete_record,0);
+//                    msg("Anchor: $record = ".$delete_anchor,0);
+                    msg('Record deleted.',1);
+                    $delete_record = NULL;
+                    $delete_anchor = NULL;
                     continue;
                   }
                   else { if(strlen($record)>1) $news_records.= "====== ".$record;}
                 }
-//                echo "News: ".$news_records."<br />";
                 // write file
                 saveWikiText($targetpage, $news_records, "New entry", true);
-                // inform user
-                msg('Record deleted.',1);
             }    
       /*------- show user form -----------------------------------------------*/            
             // this will provide the user form to add further news
@@ -306,7 +311,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           else {
             $a=0.5; 
             $item_width = 'style="margin-right: 10px !important;"';
-            $prefs[2] = "float: ".$prefs[2];
+            $prefs[2] = "float: ".$prefs[2].";";
             $prefs[1] = 'style="width: '.$prefs[1].'; '.$prefs[2].'"';} 
           
           if($prefs[3]==0) $prefs[3]=5;
@@ -441,10 +446,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                   <a class="news_link" href="'.$value.'" target="_blank">
                                     <img class="news_subcontent_pic" alt="News" src="'.$theLink.'" a="">
                                   </a><br />
-                              </DIV>'.NL;
-                              $news_head  .= '<script type="text/javascript">
-                                                dropdowncontent.init("news_link'.$prev_id.'", "left-bottom", 500, "mouseover")
-                                             </script>'.NL;
+                              </DIV>'.NL;                            // anchorid,             pos,        glidetime, revealbehavior
+                              $news_head  .= '<script type="text/javascript">'.  
+                                             '   dropdowncontent.init("news_link'.$prev_id.'", "left", 500, "mouseover")'.
+                                             '</script>'.NL;
                             }
                         }
                     }
@@ -612,7 +617,6 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           // 1. read news file (e.g. news:newsdata.txt)
           $av = 0;
           $oldrecord = rawWiki($targetpage);
-//          $entries = explode("\n----\n\n",$oldrecord);
           $entries = explode("======",$oldrecord);
           $info = array();
           $yh_level = $this->getConf('yh_level');
@@ -749,7 +753,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 // --- just ouput only the linked article on the page ----------
                 $archive_lnkTitle = $this->getConf('lnk_newsarchive');
                 if($archive_lnkTitle=='') $archive_lnkTitle = "News Archive";
-                if((strlen($anchor)>2)) {
+                if((strlen($anchor)>2) && (isset($prefs['anchor'])!==false)) {
                   if(stripos($anchor,$prefs['anchor']) !== false) {
                       $output .= '<script type="text/javascript" src="backlink.js"></script>';
                       $output .= '<SCRIPT TYPE="text/javascript">
