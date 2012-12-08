@@ -82,9 +82,13 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         $del          = 'anss_del';
         $cut_prefx    = 'news_input_';
         $allnewsdata1 = $this->getConf('news_output');
-        $allnewsdata  = wl( (isset($allnewsdata1) ? $allnewsdata1 : 'news:newsdata') );          
+        $allnewsdata  = wl( (isset($allnewsdata1) ? $allnewsdata1 : 'news:newsdata') );
+        $i            = strripos($allnewsdata, ":");
+        $news_root    = substr($allnewsdata, 0, $i);          
         // check if user has write permission on that ID
         $current_usr = pageinfo();
+        // necessary for the back link of a show one article per page (SOAPP)
+        if($_GET['archive']=='archive') $ans_conf['param'] = 'archive';
 
         // 1. read template (plugins/anewssystem/template.php)
         $template   = file_get_contents(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
@@ -162,6 +166,11 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                               else output = cextract;
                               document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(word count: " + output + " of " + max + " )"
                           }
+                          
+                          function resizeBoxId(obj,size) {
+                              var arows = document.getElementById(obj).rows;
+                              document.getElementById(obj).rows = arows + size;
+                          }
                        </script></span>';
 
             $output .= '<div class="news_form_div">
@@ -179,12 +188,19 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                              id="nws_charcount"
                                              name="nws_charcount">&nbsp;&nbsp;(word count: 0 of '.$this->getConf('prev_length').' )</label><br />';   
 
+                        $output .= $this->news_edit_toolbar('news_input_'.trim($fields[0]));
+                        
+                        $imgBASE = DOKU_BASE."lib/plugins/anewssystem/images/toolbar/";
                         $output .= '<textarea class="news_input_textarea"'. 
                                             ' id="news_input_'.trim($fields[0]).'"'.
                                             ' name="news_input_'.trim($fields[0]).'"'.
                                             ' title="'.trim($this->getLang(trim($fields[5]))).'" '.trim($fields[2]).'"'.
                                             ' onkeyup="count_chars(this,'.$this->getConf('prev_length').')" >'.
-                                      '</textarea></p>'.NL;
+                                      '</textarea>
+                                      <span class="reply_close_link">
+                                      <a href="javascript:resizeBoxId(\'news_input_'.trim($fields[0]).'\', -20)"><img src="'.$imgBASE.'reduce.png" title="reduce textarea" style="float:right;" /></a>
+                                      <a href="javascript:resizeBoxId(\'news_input_'.trim($fields[0]).'\', +20)"><img src="'.$imgBASE.'enlarge.png" title="enlarge textarea" style="float:right;" /></a>
+                                      </span></p>'.NL;
                 }
                 else if (trim($fields[0]) == "anchor") {
 
@@ -593,11 +609,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $renderer->doc .= $output;
         }
         /* --- Show all news -------------------------------------------------*/
-        elseif ((strpos($ans_conf['param'], 'allnews')!== false) || (strpos($ans_conf['param'], 'archive')!== false)) {
+        elseif ((strpos($ans_conf['param'], 'allnews')!== false)) {
           // check if page ID was called with tag filter
           $tmp         = ','.$_GET['tag'];    // this will overrule the page syntax setting
-
-          
           if(strlen($tmp)<2) {
               // strip parameter to get set of add parameter
               // there exist either 'tag' or 'anchor', never both at the same time
@@ -694,6 +708,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                              }
                              else $ank='';
                         }
+                        elseif($key=='subtitle'){
+                             $news_subtitle = '<br /><span class="news_subtitle">'.trim($value).'</span>'.NL;                        
+                        }
                         elseif($key=='link'){                      
                             $news_head = '<a href="'.$value.'" id="'.$value.'" name="'.$value.'">'. $news_head .'</a>'.NL;
                         }
@@ -716,54 +733,32 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 
                  if((isset($prefs[1]) === false) || (strlen($prefs[1]) <2)) $tag_flag = true;                 
                  
-                 if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true) && (strpos($ans_conf['param'], 'archive') === false) && (isset($prefs['anchor']) === false)) {
-                     $output .= '<div>'.NL.'<h'.$h_level.'>'.$news_head.$news_date.'</h'.$h_level.'>'.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
+                 if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true) && (strpos($ans_conf['param'], 'archive') === false)) {
+                     $output .= '<div>'.NL.'<h'.$h_level.'>'.$news_head.$news_date.$news_subtitle.'</h'.$h_level.'>'.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
                  }
                  elseif(isset($prefs['anchor'])===true) {
                       // show the single article independently if it is current or outdated
-                      $output .= '<div>'.NL.'<h'.$h_level.'>'.$news_head.$news_date.'</h'.$h_level.'>'.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
-                 }                 
-                 elseif (($aFlag === true) && ($tag_flag === true) && (strpos($ans_conf['param'], 'archive')!== false)) {
-                    // list all news stories as headline (incl. date + author) linked to the story itself
-                    $elt = explode(",",$news_date);
-                    $elt[0] = trim(strip_tags(str_replace('(','',$elt[0])));
-                    $elt[0] = date('F,Y',strtotime($elt[0]));
-                    list($new_month,$new_year) = explode(',',$elt[0]); 
-                    
-                    // idea is that all stories are createdone after the other 
-                    // and the order within newsdata is according the start date
-                    // !!! There is no sort algorithm for year and month implemented !!!
-                    // to do such would lead into re-development of the plugin
-                    if($old_year  !== $new_year)  {
-                      if($old_year  !== '') $close_ytag = "</div>".NL;
-                      $output .= $close_ytag.'<h'.$yh_level.'>'.$new_year.'</h'.$yh_level.'><div class="level'.$yh_level.'">'; 
-                      $old_year  = $new_year;
-                    }
-                    
-                    if($old_month  !== $new_month) {
-                      if($old_month  !== '') $close_mtag = "</div>".NL;
-                      $output .= $close_mtag.'<h'.$mh_level.'>'.$new_month.'</h'.$mh_level.'><div class="level'.$mh_level.'">';
-                      $old_month = $new_month; 
-                    }
-                     
-                    $output .= trim($news_date).'<br />'.$news_head.'<br />'.NL;
-                    $close_ytag = "";
-                    $close_mtag = ""; 
-                }
+                      $output .= '<div>'.NL.'<h'.$h_level.'>'.$news_head.$news_date.$news_subtitle.'</h'.$h_level.'>'.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
+                 }
+                 $news_subtitle='';                 
                 // --- just ouput only the linked article on the page ----------
                 $archive_lnkTitle = $this->getConf('lnk_newsarchive');
                 if($archive_lnkTitle=='') $archive_lnkTitle = "News Archive";
                 if((strlen($anchor)>2) && (isset($prefs['anchor'])!==false)) {
                   if(stripos($anchor,$prefs['anchor']) !== false) {
-                      $output .= '<script type="text/javascript" src="backlink.js"></script>';
-                      $output .= '<SCRIPT TYPE="text/javascript">
+                      $output = '<script type="text/javascript" src="backlink.js"></script>
+                                  <script type="text/javascript">
                                     <!--
                                     var gb = new backlink();
                                     gb.write();
                                     //-->
                                   </SCRIPT>
-                                  <a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>';
-                      $output .= '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a>';
+                                 <div style="font-size:.85em;"><a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>'.NL.
+                                '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL.
+                                '<div class="archive_section" id="news_archive_head"  style="'.$archive_options['style'].'">'.
+                                  $output.
+                                '<div style="font-size:.85em;"><a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>'.NL. 
+                                '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL;          
                       break;  // due to the single linked article is loaded into $output
                   }
                 }
@@ -772,11 +767,212 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 }   
           }
           
-          if(isset($prefs['anchor']) === true) $output .= '<div style="clear: both;"></div>'.NL.NL; 
-          else $output .= '</div><div style="clear: both;"></div>'.NL.NL;
+          $output .= '</div><div style="clear: both;"></div>'.NL.NL;
           $renderer->doc .= $output;
         }       
-        // --- faulty syntax ---
+/* --- Show archive ----------------------------------------------------------*/
+        elseif ((strpos($ans_conf['param'], 'archive')!== false)) {
+          // date  ... consider all news of a defined month of a year (mm.yyyy, empty per default)
+          // qty   ... limits the number of news headlines starting with most recent (either integer or all, default:all)
+          // tag   ... consider all news where news article owns the given tag string (empty per default) tag delimiter is "|"
+          // style ... css style string as used in HTML (except quotation marks) for the outer element div
+          // class ... css style for usecase toc, page or box
+          // ho    ... headlinesonly will list the news headlines without timestamp and author (on/off, default: off)
+          
+          // check if page ID was called with tag filter
+//          $tmp         = ','.$_GET['tag'];    // this will overrule the page syntax setting
+          if(strlen($tmp)<2) {
+              // strip parameter to get set of add parameter
+              $tmp     = substr($ans_conf['param'],strlen('allnews')); 
+          }
+          $split_array = explode(',',$tmp); // one or multiple tag filters: $prefs[1] ... [n]
+          $archive_options = array();
+          
+          // split parameter into array with key and data
+          foreach ($split_array as $item) {
+            list($key, $value) = split("=",trim($item),2);
+            $archive_options = $archive_options + array($key => $value);
+          }
+//          echo $archive_options['tag'].'<br />';
+          if(($archive_options['qty']=='') || ($archive_options['qty']<1)) $archive_options['qty']   = 'all';
+          if(array_key_exists('class',$archive_options) === false)         $archive_options['class'] = 'page';
+          if(array_key_exists('ho',$archive_options) === false)            $archive_options['ho']    = 'off';
+          $page        = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') );          
+          
+          // load raw news file (e.g. news:newsdata.txt)
+          $av = 0;
+          $oldrecord = rawWiki($targetpage);
+          
+          // split the news articles
+          $newsitems = explode("======",$oldrecord);
+          $info = array();
+          
+          // get the headline level from config
+          $yh_level = $this->getConf('yh_level');
+          $mh_level = $this->getConf('mh_level');
+          $h_level = $this->getConf('h_level');
+                    
+          // 1. read news file (e.g. news:newsdata.txt)
+          foreach($newsitems as $article) {             
+             // split news block into line items
+             $article_array = explode("\n  * ",$article);
+             unset($article_array[0]);
+             
+             // 2. create output
+             // split line items into key and data
+             $aFlag = false;   // flag: start date value exists and start is not in future
+
+                 foreach ($article_array as $item) {
+                        list($key, $value) = split(":",trim($item),2);
+                        $tag_flag = false;
+                        if($key=='anchor') {
+                            $anchor = trim($value);
+                        }
+                        elseif(($key=='start') && strtotime(trim($value)) < time()) {
+                            $value = date($this->getConf('d_format'), strtotime($value));
+                            $news_date = '<span class="news_date_a"> ('. $value;
+                            // get month and year to compare with $archive_options['date']
+                            if(isset($archive_options['date']) && ($archive_options['date'] !== date('m.Y',strtotime($value)))) break;
+                            $aFlag = true;
+                        }
+                        // head has to be before the link in the template !
+                        elseif($key=='head'){
+                             $news_head = trim($value);                        
+                        }
+                        elseif($key=='subtitle'){
+                             $news_subtitle = '<br /><span class="news_subtitle">'.trim($value).'</span>'.NL;                        
+                        }
+                        elseif($key=='link'){                      
+                            $news_head = '<a href="'.$value.'" id="'.$value.'" name="'.$value.'">'. trim($news_head) .'</a>'.NL;
+                        }
+                        elseif($key=='author'){                      
+                            $news_date .= ', '. $value;
+                        }
+                        elseif(($key=='tags') && (isset($archive_options['tag']) !== false)) {
+//                            echo $value.'<br />';
+                            $tags = explode(',',$value);
+                            foreach($tags as $tag) {
+                                if(($tag!==false) && (stripos($archive_options['tag'],trim($tag))!==false)){
+                                    $tag_flag = true;
+                                    break;
+                                }
+                            }
+                        }
+                 }
+                 
+                 $news_date .=  ')</span>'.NL;
+
+                 if((isset($archive_options['tag']) === false) || (strlen($archive_options['tag']) <2)) $tag_flag = true;                 
+                 
+                 if (($aFlag === true) && ($tag_flag === true)) {
+                    //stop adding older news articles if quantity is reached
+//                    echo intval($archive_options['qty']).' >= '.$qty.'<br>';
+                    $qty++;
+                    if(($qty > intval($archive_options['qty'])) && ($archive_options['qty']!=='all')) break;
+                    
+                    // list all news stories as headline linked to the story itself
+                    $elt = explode(",",$news_date);
+                    $elt[0] = trim(strip_tags(str_replace('(','',$elt[0])));
+                    $elt[0] = date('F,Y',strtotime($elt[0]));
+                    list($new_month,$new_year) = explode(',',$elt[0]); 
+                    
+                    // idea is that all stories are created one after the other 
+                    // and the order within newsdata is according the start date
+                    // manipulation of Start/Perishing date possible but not expected
+                    // !!! There is no sort algorithm for year and month implemented !!!
+                    // to do such would lead into re-development of the plugin
+                    if(($old_year  !== $new_year) && (($archive_options['class']==='page') || ($archive_options['ho']==='off')))  {
+                      if(trim($old_year) !== '') $close_ytag = "</li></ul>".NL;
+                      $output .= $close_ytag.'<ul><li class="level1"><div class="li">'.$new_year.'</div><ul class="toc">'; 
+                      $old_year  = $new_year;
+                    }
+                    
+                    if(($old_month  !== $new_month) && (($archive_options['class']==='page') || ($archive_options['ho']==='off'))) {
+                      if(trim($old_month) !== '') $close_mtag = "</li></ul>".NL;
+                      $output .= $close_mtag.'<ul><li class="level2"><div class="li">'.$new_month.'</div>';
+                      $old_month = $new_month; 
+                    }
+                    
+                    if($archive_options['ho']==='on') $news_date='';
+                    else $news_date .= '<br />'; 
+                    
+                    if(($archive_options['tag']!==false) && ($archive_options['tag']!=='off') && ($archive_options['class']=='page')) $output .= '<div class="archive_item">'.trim($news_date).$news_head.$news_subtitle.'</div>'.NL;
+                    else $output .= '<ul><li class="level3"><div class="li">'.trim($news_date).$news_head.'</div></li></ul>'.NL;
+                    
+                    $close_ytag    = "";
+                    $close_mtag    = "";
+                    $anchor        = "";
+                    $news_date     = "";
+                    $news_head     = "";
+                    $news_subtitle = "";
+                    $tags          = ""; 
+                }
+          }
+          $blink_id = "news_items";
+          $img_ID   = "img_archive__toc";
+          
+          if($archive_options['class']=='toc') {            
+              $output = '<script type="text/javascript">
+                             function archive__toc_open(toggle_id, img_ID) 
+                              {   if (document.getElementById(toggle_id).style.display == "none")
+                                  {   document.getElementById(toggle_id).style.display = "block";
+                                      document.getElementById(img_ID).style.backgroundPosition = "0px 0px";
+                                  }
+                                  else
+                                  {   document.getElementById(toggle_id).style.display = "none";
+                                      document.getElementById(img_ID).style.backgroundPosition = "0px -5px";
+                                  }
+                              } 
+                         </script>
+                         <div class="archive_box" id="archive__toc"  style="'.$archive_options['style'].'">
+                            <h3 class="toggle open" style="cursor: pointer;" onClick="archive__toc_open(\''.$blink_id.'\',\''.$img_ID.'\')">
+                              <strong id="img_archive__toc"></strong>
+                              NEWS
+                            </h3>
+                             <div id="news_items">
+                                 <div>
+                                 <ul class="toc">'.$output.'</ul>
+                                 </div
+                                 <hr id="archive__toc_hr">
+                                 <div style="text-align:right;font-size:.85em;">
+                                    <a href="'.$news_root.':allnewsdata&archive=archive">&raquo; News Archive</a>
+                                 </div>
+                             </div>
+                          </div>'.NL.NL;
+          }
+          elseif($archive_options['class']=='box') {
+              $output = '<div class="archive_box" id="archive__box" style="'.$archive_options['style'].'">
+                            <div id="news_items">
+                                <ul class="toc">'.$output.'</ul>
+                             </div>
+                         </div>'.NL;
+          }
+          elseif($archive_options['class']=='page') {
+                $archive_lnkTitle = $this->getConf('lnk_newsarchive');
+                if($archive_lnkTitle=='') $archive_lnkTitle = "News Archive";
+
+              $output = '<script type="text/javascript" src="backlink.js"></script>'.NL.
+                        '<SCRIPT TYPE="text/javascript">
+                                    <!--
+                                    var gb = new backlink();
+                                    gb.write();
+                                    //-->
+                                  </SCRIPT>
+                         <div style="font-size:.85em;"><a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>'.NL.
+                        '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL.
+                        '<div class="archive_section" id="news_archive_head"  style="'.$archive_options['style'].'">
+                            <div id="news_items">
+                                '.$output.'
+                             </div>
+                         </div>'.NL.
+                        '<div style="font-size:.85em;"><a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>'.NL. 
+                        '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL;          
+          }
+                     
+          $renderer->doc .= $output;
+        }
+
+// --- faulty syntax ----------------------------------------------------------
         else {
           $renderer->doc .= msg('Syntax of anewssystem plugin detected but unknown parameter  ['.$ans_conf['param'].'] was provided.', -1);
         }
@@ -811,6 +1007,152 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
             $prvw_string = str_replace($r_string.$in,$link,$prvw_string);
         }
         return $links;
+    }
+
+/******************************************************************************/
+/* return html-code for news edit toolbar                                     */
+    function news_edit_toolbar($type) {
+        $imgBASE = DOKU_BASE."lib/plugins/anewssystem/images/toolbar/";
+        $news_edit_tb .= '<script type="text/javascript">
+          function doHLine(tag1,obj)
+          { textarea = document.getElementById(obj);
+          	if (document.selection) 
+          	{     // Code for IE
+          				textarea.focus();
+          				var sel = document.selection.createRange();
+          				sel.text = "\n" + tag1 + "\n" + "\n" + sel.text;
+          	}
+            else 
+            {   // Code for Mozilla Firefox
+             		var len = textarea.value.length;
+             	  var start = textarea.selectionStart;
+             		var end = textarea.selectionEnd;
+              		
+             		var scrollTop = textarea.scrollTop;
+             		var scrollLeft = textarea.scrollLeft;
+              		
+                var sel = textarea.value.substring(start, end);
+         		    var rep = tag1 + sel;
+                textarea.value =  textarea.value.substring(0,start) + rep + textarea.value.substring(end,len);
+              		
+             		textarea.scrollTop = scrollTop;
+             		textarea.scrollLeft = scrollLeft;
+          	}
+          }'.
+
+         'function doAddTags(tag1,tag2,obj)
+          { textarea = document.getElementById(obj);
+          	// Code for IE
+          	if (document.selection) 
+          			{ textarea.focus();
+          				var sel = document.selection.createRange();
+                  if (sel.text == "") sel.text = " ";
+          				sel.text = tag1 + sel.text + tag2;
+          			}
+             else 
+              {  // Code for Mozilla Firefox
+          		  var len = textarea.value.length;
+          	    var start = textarea.selectionStart;
+          		  var end = textarea.selectionEnd;
+          		
+          		  var scrollTop = textarea.scrollTop;
+          		  var scrollLeft = textarea.scrollLeft;
+          		
+                var sel = textarea.value.substring(start, end);
+          		  if (start == end) { sel = " "; }
+                var rep = tag1 + sel + tag2;
+                textarea.value =  textarea.value.substring(0,start) + rep + textarea.value.substring(end,len);
+          		
+          		  textarea.scrollTop = scrollTop;
+          		  textarea.scrollLeft = scrollLeft;
+          	}
+          }'.
+          
+         'function doTT(obj)
+          { textarea = document.getElementById(obj);
+          	// Code for IE
+          	if (document.selection) 
+          			{ textarea.focus();
+          				var sel = document.selection.createRange();
+                  if (sel.text == "") sel.text = " ";
+          				sel.text = "\'\'" + sel.text + "\'\'";
+          			}
+             else 
+              {  // Code for Mozilla Firefox
+          		  var len = textarea.value.length;
+          	    var start = textarea.selectionStart;
+          		  var end = textarea.selectionEnd;
+          		
+          		  var scrollTop = textarea.scrollTop;
+          		  var scrollLeft = textarea.scrollLeft;
+          		
+                var sel = textarea.value.substring(start, end);
+                if (start == end) { sel = " "; }
+          		  var rep = "\'\'" + sel + "\'\'";
+                textarea.value =  textarea.value.substring(0,start) + rep + textarea.value.substring(end,len);
+          		
+          		  textarea.scrollTop = scrollTop;
+          		  textarea.scrollLeft = scrollLeft;
+          	}
+          }'.
+
+          'function doList(tag1,obj)
+          {
+              textarea = document.getElementById(obj);
+
+          		if (document.selection) 
+          			{ // Code for IE
+          				textarea.focus();
+          				var sel = document.selection.createRange();
+          				var list = sel.text.split("\n");
+          		
+          				for(i=0;i<list.length;i++) 
+          				{ list[i] = tag1 + list[i]; }
+          				sel.text = "\n" + list.join("\n") + "\n";
+          			} 
+              else
+          			{ // Code for Firefox
+          		    var len = textarea.value.length;
+          	      var start = textarea.selectionStart;
+          		    var end = textarea.selectionEnd;
+          		    var i;
+
+          		    var scrollTop = textarea.scrollTop;
+          		    var scrollLeft = textarea.scrollLeft;
+
+                  var sel = textarea.value.substring(start, end);
+          		    var list = sel.split("\n");
+          		
+              		for(i=0;i<list.length;i++) 
+          				{ list[i] = tag1 + list[i]; }
+
+              		var rep = "\n" + list.join("\n") + "\n";
+              		textarea.value =  textarea.value.substring(0,start) + rep + textarea.value.substring(end,len);
+
+              		textarea.scrollTop = scrollTop;
+              		textarea.scrollLeft = scrollLeft;
+              }
+          }
+         </script>';                      
+        $news_edit_tb .= '<div class="news_edittoolbar">'.NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."bold.png\"      name=\"btnBold\"          title=\"Bold\"             onClick=\"doAddTags('**','**','$type')\">".NL;
+        $news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."italic.png\"    name=\"btnItalic\"        title=\"Italic\"           onClick=\"doAddTags('//','//','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."underline.png\" name=\"btnUnderline\"     title=\"Underline\"        onClick=\"doAddTags('__','__','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."mono.png\"      name=\"btnMono\"          title=\"mono-spaced font\" onClick=\"doTT('$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."strike.png\"    name=\"btnStrike\"        title=\"Strike through\"   onClick=\"doAddTags('<del>','</del>','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."subscript.png\" name=\"btnSubscript\"     title=\"Subscript\"        onClick=\"doAddTags('<sub>','</sub>','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."superscript.png\" name=\"btnSuperscript\" title=\"Superscript\"      onClick=\"doAddTags('<sup>','</sup>','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."hr.png\"        name=\"btnLine\"          title=\"Horizontal ruler\" onClick=\"doHLine('----','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."ol.png\"        name=\"btn_o_List\"       title=\"Ordered List\"     onClick=\"doList('  - ','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."ul.png\"        name=\"btn_u_List\"       title=\"Unordered List\"   onClick=\"doList('  * ','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."h1.png\"        name=\"btn_u_List\"       title=\"Headline Level 1 (Page Title)\" onClick=\"doAddTags('======','======','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."h2.png\"        name=\"btn_u_List\"       title=\"Headline Level 2\" onClick=\"doAddTags('=====','=====','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."h3.png\"        name=\"btn_u_List\"       title=\"Headline Level 3\" onClick=\"doAddTags('====','====','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."h4.png\"        name=\"btn_u_List\"       title=\"Headline Level 4\" onClick=\"doAddTags('===','===','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."h5.png\"        name=\"btn_u_List\"       title=\"Headline Level 5\" onClick=\"doAddTags('==','==','$type')\">".NL;
+      	$news_edit_tb .= "<img class=\"newsedit_button\" src=\"".$imgBASE."code.png\"      name=\"btnCode\"          title=\"Code block\"          onClick=\"doAddTags('<code>','</code>','$type')\">".NL;
+        $news_edit_tb .= "<br></div>".NL; 
+        return $news_edit_tb;                     
     }
 }
 ?>

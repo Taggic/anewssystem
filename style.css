@@ -22,7 +22,7 @@ li.newslist {
   .news_form_div {
     border:            1px dotted #828282;
     background:                   #EEEDFF;
-    width:                          525px;
+    width:                          600px;
     padding:                8px 6px 0 8px;
     border-radius:                    4px;
     box-shadow:       2px 2px 4px #6B6B6B;
@@ -40,6 +40,10 @@ li.newslist {
     margin-left:                     45px;
   }
   
+  .news_input_subtitle {
+    margin-left:                     45px;
+  }
+  
   .news_input_link {
     margin-left:                     23px;
   }
@@ -53,6 +57,7 @@ li.newslist {
   }
   
   .news_input_textarea {
+    width: 100%;
   }
 
   .news_input_author  {
@@ -71,6 +76,22 @@ li.newslist {
   
   .news_input_anchor {
     margin-left:                     63px;
+  }
+
+  .news_edittoolbar{
+    height:                          22px;
+  }
+  .newsedit_button{
+    margin:                           2px;
+    
+  }
+  .newsedit_button:hover {
+    border:             1px solid #3EC0F0;
+    margin-top:                       1px;
+    margin-left:                      1px;
+    margin-right:                     1px;  
+    border-radius:                    2px;
+    box-shadow:       1px 1px 1px #38ADD8;  
   }
   
 /* ---  news preview style --- */
@@ -202,32 +223,41 @@ li.newslist {
     margin-bottom:                   10px;
   }
   .anss_del_img {
+    border:                             0;
+    background-color:         transparent;
     background-image:url(images/delete.gif);
     margin-top:                    -10px ;
-    margin-right:                  -10px ;
+    margin-right:                   -6px ;
     margin-left:                    10px ;
     float:                          right;
   }
   
   .anss_del_img:hover {
+    border:                             0;
+    background-color:         transparent;
     background-image:url(images/delete_hov.gif) !important;
     margin-top:                    -10px ;
-    margin-right:                  -10px ;
+    margin-right:                   -6px ;
     margin-left:                    10px ;
     float:                          right;
   }
   .anss_edit_img {
+    border:                             0;
+    background-color:         transparent;
     background-image:url(images/edit.gif);
     margin-top:                    -10px ;
-    margin-right:                  -10px ;
+    margin-right:                   -6px ;
     margin-left:                    20px ;
     float:                          right;
+    background-color:         transparent;
   }
   
   .anss_edit_img:hover {
+    border:                             0;
+    background-color:         transparent;
     background-image:url(images/edit_hov.gif) !important;
     margin-top:                    -10px ;
-    margin-right:                  -10px ;
+    margin-right:                   -6px ;
     margin-left:                    20px ;
     float:                          right;
   }
@@ -235,7 +265,6 @@ li.newslist {
   .anss_sep {
     color:             #D8D8D8 !important;
   }
-  /*-------------------------------------------------------*/
   .newsclouddiv { margin: 0.5em 1em 0.5em 1em; line-height: 145%; }
   .newsclouddiv a { padding: 0; margin: 0 0.5em; }
 
@@ -254,3 +283,65 @@ li.newslist {
   .newscloud3 { font-size: 14px; color: #88A9DB; }
   .newscloud4 { font-size: 16px; color: #4A7AC2; }
   .newscloud5 { font-size: 18px; color: #003F9E; }
+  
+/*____________ NEWS Archive style-class = toc ________________________________*/
+  #archive__toc {
+      background-color:         transparent;
+      float: right;
+      margin: 0 0 1.4em 1.4em;
+      width: 20em;
+      border-left: 1px solid #C3C3C3;
+      color: inherit;
+  }
+  
+  #archive__toc_hr { margin: 0; }
+  
+  #archive__toc h3.toggle {
+    font-size: 0.875em;
+    letter-spacing: 0.1em;
+    margin-bottom: 0;
+    padding: 0.5em 1em;
+    font-weight: bold;
+  }
+  
+  #archive__toc .toggle strong {
+    float: right;
+    margin: 0 .2em;
+    background: url("images/toc-arrows.png") repeat scroll 0 0 transparent;
+    height: 5px;
+    margin: 0.4em 0 0;
+    width: 8px;
+  }
+  
+  #archive__toc div, #archive__box div { padding: 0em 1.5em; }
+  #archive__box div { padding-top: 0em; padding-bottom: 0.5em; }
+  
+  #archive__toc ul, #archive__box ul {
+      padding: 0;
+      margin: 0;
+      font-size: .95em;
+  }
+  
+  #archive__toc ul li, #archive__box ul li {
+      padding-bottom: .75em;
+      margin: 0;
+      list-style-image: url("images/toc-bullet.png");
+  }
+  
+  .archive_box .level3 {
+      padding-bottom: 0!important;
+  }
+
+  #archive__toc ul li div.li, #archive__box ul li div.li { padding: .15em 0; }
+  #archive__toc ul ul, #archive__box ul ul { padding-left: 1em; }
+  
+  .news_subtitle {
+    font-size:             80%;
+    font-style:         italic;
+    color:             #828282;
+  }
+  
+  .archive_item {
+    margin-top:              0;
+    margin-bottom:         5px;
+  }
