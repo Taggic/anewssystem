@@ -294,7 +294,7 @@ li.newslist {
       color: inherit;
   }
   
-  #archive__toc_hr { margin: 0; }
+  #archive__toc_hr { clor: black; margin: 0; }
   
   #archive__toc h3.toggle {
     font-size: 0.875em;
@@ -322,7 +322,7 @@ li.newslist {
       font-size: .95em;
   }
   
-  #archive__toc ul li, #archive__box ul li {
+  #archive__toc ul li, ul.n_box li {
       padding-bottom: .75em;
       margin: 0;
       list-style-image: url("images/toc-bullet.png");
