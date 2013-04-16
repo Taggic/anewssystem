@@ -686,18 +686,22 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                             $pattern = '/\[\[.*?\]\]/i';
                             $links = $this->replace_links($pattern, $value, 'url');
                             
-                            // shrink the output according settings
-                            //$prvw_string = substr( preg_replace ('/\<.*?\>/', ' ', $value ) , 0, $preview_length );
-                            $check = explode(' ', $value);
-                            $i=0;
-                            $prvw_string ='';
-                            foreach($check as $a) {
-                                $prvw_string .= $a.' ';
-                                $i++; 
-                                if($i>$preview_length) {break;}
+                            if(isset($prefs['anchor'])!==true) {
+                                // shrink the output according settings
+                                //$prvw_string = substr( preg_replace ('/\<.*?\>/', ' ', $value ) , 0, $preview_length );
+                                $check = explode(' ', $value);
+                                $i=0;
+                                $prvw_string ='';
+                                foreach($check as $a) {
+                                    $prvw_string .= $a.' ';
+                                    $i++; 
+                                    if($i>$preview_length) {break;}
+                                }
+                                if(count($check)-1>$preview_length) $prvw_string .= ' ...';
                             }
-                            if(count($check)-1>$preview_length) $prvw_string .= ' ...';
-                            
+                            else {
+                              $prvw_string = $value;
+                            }
                             // replace placeholder
                             $links = $this->replace_placeholder($links, $prvw_string, 'url');
                             $linkx = $this->replace_placeholder($linkx, $prvw_string, 'medi');
@@ -785,6 +789,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 if($archive_lnkTitle=='') $archive_lnkTitle = "News Archive";
                 if((strlen($anchor)>2) && (isset($prefs['anchor'])!==false)) {
                   if(stripos($anchor,$prefs['anchor']) !== false) {
+        $backlink = '<a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>';
+        $backlink .= '<span class="anss_sep"> &nbsp;|&nbsp;</span>
+                      <a href="'.DOKU_URL.'doku.php?id='.$this->getConf('news_output').'">'.$this->getLang('allnews').'</a>';
                       $output = '<script type="text/javascript" src="backlink.js"></script>
                                   <script type="text/javascript">
                                     <!--
@@ -792,11 +799,11 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                     gb.write();
                                     //-->
                                   </SCRIPT>
-                                 <div style="font-size:.85em;"><a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>'.NL.
+                                 <div style="font-size:.85em;">'.$backlink.NL.
                                 '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL.
                                 '<div class="archive_section" id="news_archive_head"  style="'.$archive_options['style'].'">'.
                                   $output.
-                                '<div style="font-size:.85em;"><a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>'.NL. 
+                                '<div style="font-size:.85em;">'.$backlink.NL. 
                                 '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL;          
                       break;  // due to the single linked article is loaded into $output
                   }

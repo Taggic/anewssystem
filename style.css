@@ -345,3 +345,9 @@ li.newslist {
     margin-top:              0;
     margin-bottom:         5px;
   }
+  
+  div.backlinkDiv {
+    background:                   #EEEDFF;
+    border-radius:                    4px;
+    padding: 0.25em 0 0.25em 1em;
+  }

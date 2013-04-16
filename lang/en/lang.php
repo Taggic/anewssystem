@@ -29,3 +29,4 @@ $lang['del_title']       = 'Delete this News record';
 $lang['newsflash_title'] = 'NEWS flash';
 $lang['anss_edit_imgttl']= 'Edit';
 $lang['lnk_back']        = '&laquo; back';
+$lang['allnews']         = 'all News';
