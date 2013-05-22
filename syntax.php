@@ -491,6 +491,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     break; }
              }    
           }
+          if($item_counter==0)
+          {
+              $output .= '<div class="prev_newsitem">'.$this->getLang('noNews').'</div>'.NL;
+          }
           $output        .= '</div></div>'.NL.NL;
           $output         = '<script type="text/javascript" src="'.DOKU_URL.'lib/plugins/anewssystem/dropdowncontent.js"></script>'.$output; 
           $renderer->doc .= $output;
@@ -778,6 +782,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                  
                  if(($aFlag === true) && ($bFlag === true) && ($tag_flag === true)) {
                      $output .= '<div>'.NL.'<h'.$h_level.'>'.$news_head.$news_date.$news_subtitle.'</h'.$h_level.'>'.NL.$preview_string.NL.$ank.NL.'</div>'.NL;
+                     $item_counter++;
                  }
                  elseif(isset($prefs['anchor'])===true) {
                       // show the single article independently if it is current or outdated
@@ -813,6 +818,10 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 }   
           }
           
+          if($item_counter==0)
+          {
+              $output .= '<span>'.$this->getLang('noNews').'</span>'.NL;
+          }
           $output .= '</div><div style="clear: both;"></div>'.NL.NL;
           $renderer->doc .= $output;
         }       

@@ -30,3 +30,4 @@ $lang['newsflash_title'] = 'NEWS flash';
 $lang['anss_edit_imgttl']= 'Edit';
 $lang['lnk_back']        = '&laquo; back';
 $lang['allnews']         = 'all News';
+$lang['noNews']          = 'No current news';
