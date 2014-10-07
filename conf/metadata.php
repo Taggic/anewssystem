@@ -17,4 +17,5 @@ $meta['yh_level']       = array('string');      // headline level for year cluse
 $meta['mh_level']       = array('string');      // headline level for month clusetr of All News articles
 $meta['h_level']        = array('string');      // headline level for All News articles
 $meta['lnk_newsarchive']= array('string');      // text for archive link
+$meta['act_delim']      = array('string');      // newer templates / dw-version seem to use questionmark instead of ampersand at action links
 $meta['convert']        = array('string');

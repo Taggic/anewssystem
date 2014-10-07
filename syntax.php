@@ -204,7 +204,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                 else if (trim($fields[0]) == "anchor") {
 
                         $default_anker = date("YmdHis");
-                        if($this->getConf('soapp')>0) $link_anker = '&anchor='.$default_anker; // to show only one article only on a page
+                        if($this->getConf('soapp')>0) $link_anker = $this->getConf('act_delim').'anchor='.$default_anker; // to show only one article only on a page
                         else $link_anker = '#'.$default_anker;  // to show all news at one page but scroll to the anchor position
                         $default_anker = '#'.$default_anker;
                         
@@ -343,7 +343,6 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $output .= '<div class="news_list" '.$item_width.'">'.NL;
           
           // 1. read news file (e.g. news:newsdata.txt)
-          $av = 0;
           $oldrecord = rawWiki($targetpage);
 //          $entries = explode("\n----\n\n",$oldrecord);
           $entries = explode("======",$oldrecord);
@@ -609,7 +608,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                   elseif ($val < $min+round(4*$delta)) $class = 'newscloud3';
                   elseif ($val < $min+round(8*$delta)) $class = 'newscloud4';
                   else $class = 'newscloud5';
-                  $output .= $tab_left.'<a href="'.DOKU_URL.'doku.php?id='.$this->getConf('news_output').'&tag='.trim($tag).'" class="' . $class .'"title="'.$val.'">'.$tag.'</a>'.$tab_right.NL;
+                  $output .= $tab_left.'<a href="'.DOKU_URL.'doku.php?id='.$this->getConf('news_output').$this->getConf('act_delim').'tag='.trim($tag).'" class="' . $class .'"title="'.$val.'">'.$tag.'</a>'.$tab_right.NL;
               }
           }
           $output .= '</div>'.NL;  
@@ -644,7 +643,6 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $page = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') );          
           $output = '<div class="allnews_box">'.NL;
           // 1. read news file (e.g. news:newsdata.txt)
-          $av = 0;
           $oldrecord = rawWiki($targetpage);
           $entries = explode("======",$oldrecord);
           $info = array();
@@ -805,11 +803,11 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                     //-->
                                   </SCRIPT>
                                  <div style="font-size:.85em;">'.$backlink.NL.
-                                '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL.
+                                '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).$this->getConf('act_delim').'archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL.
                                 '<div class="archive_section" id="news_archive_head"  style="'.$archive_options['style'].'">'.
                                   $output.
                                 '<div style="font-size:.85em;">'.$backlink.NL. 
-                                '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).'&archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL;          
+                                '<span class="anss_sep">&nbsp;|&nbsp;</span><a class"wikilink" href="'.wl($ID).$this->getConf('act_delim').'archive=archive">'.$archive_lnkTitle.'</a></div><br />'.NL;          
                       break;  // due to the single linked article is loaded into $output
                   }
                 }
@@ -855,7 +853,6 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           $page        = wl( (isset($targetpage) ? $targetpage : 'news:newsdata') );          
           
           // load raw news file (e.g. news:newsdata.txt)
-          $av = 0;
           $oldrecord = rawWiki($targetpage);
           
           // split the news articles
@@ -988,7 +985,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                                  </div
                                  <hr />
                                  <div style="text-align:right;font-size:.85em; border-top: 1px dotted #828282;">
-                                    <a href="'.$news_root.':allnewsdata&do=shownewsarchive">&raquo; News Archive</a>
+                                    <a href="'.$news_root.':allnewsdata'.$this->getConf('act_delim').'do=shownewsarchive">&raquo; News Archive</a>
                                  </div>
                              </div>
                           </div>'.NL.NL;

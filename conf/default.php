@@ -14,6 +14,7 @@ $conf['yh_level']          = 2;                 // headline level for year cluse
 $conf['mh_level']          = 3;                 // headline level for month clusetr of All News articles
 $conf['h_level']           = 4;                 // headline level for All News articles itself
 $conf['lnk_newsarchive']   = 'News Archive &raquo;';    // text for archive link
+$conf['act_delim']         = '&';               // newer templates / dw-version seem to use questionmark instead of ampersand at action links
 $conf['convert']           = 'http://fadeout.de/thumbshot-pro/?scale=3&url=%s&effect=2'; //the online service, which converts the linked page into a preview picture
 // http://www.thumbshots.de/cgi-bin/show.cgi?url=%s
 // http://images.websnapr.com/?size=s&nocache=81&url=%s
