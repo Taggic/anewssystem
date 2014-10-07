@@ -17,5 +17,5 @@ $lang['yh_level']       = 'headline level for year cluster of All News articles'
 $lang['mh_level']       = 'headline level for month cluster of All News articles';
 $lang['h_level']        = 'headline level for All News articles itself';
 $lang['lnk_newsarchive']= 'text for archive link';
-$meta['act_delim']      = 'some templates / dw-version use questionmark instead of ampersand at action links'
+$meta['act_delim']      = 'some templates / dw-version use questionmark instead of ampersand at action links';
 $lang['convert']        = 'Link a thumbshots online service';                                                                                                       
