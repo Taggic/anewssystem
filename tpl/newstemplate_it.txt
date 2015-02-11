@@ -1,0 +1,10 @@
+//field  |type    |length              |value  |description       | add info   (<-do not delete this line)
+anchor   |label   |size="14"           |       |Anchor            |anchordescr
+head     |text    |size="64"           |       |Headline          |headdescr
+subtitle |text    |size="64"           |       |Sub-Title         |subtitledescr
+link     |link    |size="64"           |       |Linked page       |linkdescr
+start    |date    |size="10"           |now    |Publishing date   |startdescr
+stop     |date    |size="10"           |4 month|Perishing date    |stopdescr
+text     |textarea|cols="63" rows="7"  |       |Your news article:|msgdescr
+author   |label   |size="14"           |       |Author            |authordescr
+tags     |text    |size="14"           |       |Tag&nbsp          |tagdescr

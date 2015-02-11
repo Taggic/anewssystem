@@ -1,0 +1,10 @@
+//field  |type    |length              |value  |description       | add info   (<-do not delete this line)
+anchor   |label   |size="14"           |       |Anker             |anchordescr
+head     |text    |size="64"           |       |Überschrift       |headdescr
+subtitle |text    |size="64"           |       |Untertitel        |subtitledescr
+link     |link    |size="64"           |       |Referenz-Link     |linkdescr
+start    |date    |size="10"           |now    |veröffentlicht am |startdescr
+stop     |date    |size="10"           |4 month|abgelaufen am     |stopdescr
+text     |textarea|cols="63" rows="7"  |       |Deine Neuigkeit:  |msgdescr
+author   |label   |size="14"           |       |Author            |authordescr
+tags     |text    |size="14"           |       |Tag&nbsp          |tagdescr

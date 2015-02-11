@@ -31,3 +31,5 @@ $lang['anss_edit_imgttl']= 'Modifica';
 $lang['lnk_back']        = 'Indietro';
 $lang['allnews']         = 'Tutte le news';
 $lang['noNews']          = 'Nessuna news corso.';
+$lang['wordcount']       = '&nbsp;&nbsp;(Parole: " + output + " di " + max + " )';
+$lang['wordcount2']      = '&nbsp;&nbsp;(Parole: 0 di ';

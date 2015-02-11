@@ -44,7 +44,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 /* handle the match
 */   
     function handle($match, $state, $pos, &$handler) {
-        global $ID;
+        global $ID, $conf;
         $match = substr($match,strlen('{{anss>'),-2); //strip markup from start and end
 
         //handle params
@@ -59,7 +59,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         $ans_conf                 = array();
         $ans_conf['newsroot']     = 'news';
         $ans_conf['newspage']     = 'newsdata';
-        $ans_conf['newstemplate'] = DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt';
+        $ans_conf['newstemplate'] = DOKU_PLUGIN.'anewssystem/tpl/newstemplate_'.$conf['lang'].'.txt';
         $ans_conf['param']        = $params;
         
         if (!$params) {
@@ -72,9 +72,9 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 * @author Taggic <taggic@t-online.de>
 */   
     function render($mode, &$renderer, $ans_conf) {
-        global $ID;
+        global $ID, $conf;
         $xhtml_renderer = new Doku_Renderer_xhtml();
-        $records      = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate.txt');
+        $records      = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate_'.$conf['lang'].'.txt');
         unset($records[0]);
         $target       = $this->getConf('news_datafile');
         $targetpage   = htmlspecialchars(trim($target));
@@ -163,7 +163,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                               var cextract = extract.length + bextract.length -1;
                               if(cextract>max) output = \'<span style="color:red;">\' + cextract + \'</span>\';
                               else output = cextract;
-                              document.getElementById("nws_charcount").innerHTML =  "&nbsp;&nbsp;(word count: " + output + " of " + max + " )"
+                              document.getElementById("nws_charcount").innerHTML =  "'.$this->getLang('wordcount').'"
                           }
                           
                           function resizeBoxId(obj,size) {
@@ -185,7 +185,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         $output .= '<p>'.trim($fields[4]); 
                         $output .= '<label class="nws_charcount" 
                                              id="nws_charcount"
-                                             name="nws_charcount">&nbsp;&nbsp;(word count: 0 of '.$this->getConf('prev_length').' )</label><br />';   
+                                             name="nws_charcount">'.$this->getLang('wordcount2').$this->getConf('prev_length').' )</label><br />';   
 
                         $output .= $this->news_edit_toolbar('news_input_'.trim($fields[0]));
                         
