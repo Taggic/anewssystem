@@ -12,10 +12,11 @@ $lang['news_datafile']  = 'Pfad zum Namensraum für die Datei newsdata';
 $lang['prev_length']    = 'Anzahl der in der Vorschau pro Artikel angezeigten Wörter im NewsFlash';
 $lang['newsflash_link'] = 'stelle Link zum Newsflash zur Verfügung';
 $lang['hide_anchorID']  = 'verstecke Anchor-ID';
+$lang['wysiwyg']        = 'WYSIWIG Editor einschalten (nutzt HTML statt DW Syntax !)';
 $lang['soapp']          = 'zeige nur einen Artikel pro Seite';       // soapp = show one article per page (instead of all news)
 $lang['yh_level']       = 'Überschriftsebene für die Gruppierung aller News-Artikel pro Jahr';
 $lang['mh_level']       = 'Überschriftsebene für die Gruppierung aller News-Artikel pro Monat';
 $lang['h_level']        = 'Überschriftsebene für die News-Artikel selber';
 $lang['lnk_newsarchive']= 'Text für den Archiv-Link';
-$meta['act_delim']      = 'einige Templates / DW-Versionen benötigen ein "?" statt des "&" für Action-Links';
+$lang['act_delim']      = 'einige Templates / DW-Versionen benötigen ein "?" statt des "&" für Action-Links';
 $lang['convert']        = 'Link zu einem "thumbshots online service"';                                                                                                       

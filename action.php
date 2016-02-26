@@ -219,14 +219,7 @@ class action_plugin_anewssystem extends DokuWiki_Action_Plugin {
         $backlink = '<a href="javascript:history.back(-1)">'.$this->getLang('lnk_back').'</a>';
         $backlink .= '<span class="anss_sep"> &nbsp;|&nbsp;</span>
                       <a href="'.DOKU_URL.'doku.php?id='.$this->getConf('news_output').'">'.$this->getLang('allnews').' &raquo;</a>';
-        $output = '<script type="text/javascript" src="backlink.js"></script>'.NL.
-                  '<SCRIPT TYPE="text/javascript">
-                              <!--
-                              var gb = new backlink();
-                              gb.write();
-                              //-->
-                            </SCRIPT> 
-                  <div class="backlinkDiv" style="font-size:.85em;">'.$backlink.'</div><br />'.NL.
+        $output = '<div class="backlinkDiv" style="font-size:.85em;">'.$backlink.'</div><br />'.NL.
                   '<div class="archive_section" id="news_archive_head"  style="'.$archive_options['style'].'">
                       <div id="news_items">
                           '.$output.'

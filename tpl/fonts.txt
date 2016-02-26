@@ -1,0 +1,30 @@
+Arial,Arial
+Arial Black,Arial Black
+Arial Narrow,Arial Narrow
+Arial Unicode MS,Arial Unicode MS
+Bookman Old Style,Bookman Old Style
+Calibri,Calibri
+Cambria,Cambria
+Century,Century
+Century Gothic,Century Gothic
+Comic Sans,Comic Sans
+Consolas,Consolas
+Courier,Courier
+Courier New,Courier New
+Georgia,Georgia
+Helvetica,Helvetica
+Impact,Impact
+Lucida,Lucida
+Monotype,Monotype
+MS Serif,MS Serif
+MS Sans Serif,MS Sans Serif
+Terminal,Symbol
+Tahoma,Tahoma
+Terminal,Terminal
+Times New Roman,Times New Roman
+Trebuchet,Trebuchet
+Verdana,Verdana
+Terminal,Webdings
+Terminal,Wingdings
+Terminal,Wingdings 2
+Terminal,Wingdings 3

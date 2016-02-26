@@ -31,3 +31,42 @@ $lang['anss_edit_imgttl']= 'Edit';
 $lang['lnk_back']        = '&laquo; back';
 $lang['allnews']         = 'all News';
 $lang['noNews']          = 'No current news';
+$lang['wordcount']       = '&nbsp;&nbsp;(word count: " + output + " of " + max + " )';
+$lang['wordcount2']      = '&nbsp;&nbsp;(word count: 0 of ';
+
+/******************************************************************************/
+// WYSIWYG Editor related text
+$lang['Undo']            = 'Undo';
+$lang['Redo']            = 'Redo';
+$lang['Clean']           = 'Clean';
+$lang['Remove formatting'] = 'Remove formatting';
+
+$lang['Bold']            = 'Bold';
+$lang['Italic']          = 'Italic';
+$lang['Underline']       = 'Underline';
+
+$lang['Font color']      = 'Font color';
+$lang['Background color'] = 'Background color';
+
+$lang['Strikethrough']   = 'Strikethrough';
+$lang['Superscript']     = 'Superscript';
+$lang['Subscript']       = 'Subscript';
+
+$lang['Left align']      = 'Left align';
+$lang['Center align']    = 'Center align';
+$lang['Right align']     = 'Right align';
+$lang['Full align']      = 'Full align';
+
+$lang['Add indentation'] = 'Add indentation';
+$lang['Delete indentation'] = 'Delete indentation';
+$lang['Numbered list']   = 'Numbered list';
+$lang['Dotted list']     = 'Dotted list';
+
+$lang['H-Ruler']         = 'H-Ruler';
+$lang['Quote']           = 'Quote';
+$lang['Code']            = 'Code';
+$lang['Hyperlink']       = 'Hyperlink';
+$lang['Unlink']          = 'Unlink';
+
+$lang['Smaller']         = 'Smaller';
+$lang['Bigger']          = 'Bigger';
