@@ -962,6 +962,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         elseif ((strpos($ans_conf['param'], 'allnews')!== false)) {
           // check if page ID was called with tag filter
           $tmp         = ','.$_GET['tag'];    // this will overrule the page syntax setting
+          $info        = array();
           if(strlen($tmp)<2) {
               // strip parameter to get set of add parameter
               // there exist either 'tag' or 'anchor', never both at the same time
@@ -1166,13 +1167,15 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
         }       
 /* --- Show archive ----------------------------------------------------------*/
         elseif ((strpos($ans_conf['param'], 'archive')!== false)) {
-          // date  ... consider all news of a defined month of a year (mm.yyyy, empty per default)
-          // qty   ... limits the number of news headlines starting with most recent (either integer or all, default:all)
-          // tag   ... consider all news where news article owns the given tag string (empty per default) tag delimiter is "|"
-          // style ... css style string as used in HTML (except quotation marks) for the outer element div
-          // class ... css style for usecase toc, page or box
-          // ho    ... headlinesonly will list the news headlines without timestamp and author (on/off, default: off)
-          
+          // date    ... consider all news of a defined month of a year (mm.yyyy, empty per default)
+          // qty     ... limits the number of news headlines starting with most recent (either integer or all, default:all)
+          // tag     ... consider all news where news article owns the given tag string (empty per default) tag delimiter is "|"
+          // style   ... css style string as used in HTML (except quotation marks) for the outer element div
+          // class   ... css style for usecase toc, page or box
+          // ho      ... headlinesonly will list the news headlines without timestamp and author (on/off, default: off)
+          // p_signs ... number of previewed signs of the article
+          // cws     ... define if less simple styling to be kept (or none if the parameter is missing)
+
           // check if page ID was called with tag filter
 //          $tmp         .= ','.$_GET['tag'];    // this will overrule the page syntax setting
           if(strlen($tmp)<2) {
@@ -1238,6 +1241,12 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                         elseif($key=='link'){                      
                             $news_head = '<a href="'.$value.'" id="'.$value.'" name="'.$value.'">'. trim($news_head) .'</a>'.NL;
                         }
+                        elseif($key=='wysiwyg'){                      
+                            $news_wysiwyg = $value;
+                        }
+                        elseif($key=='text'){                      
+                            $news_content = $value;
+                        }
                         elseif($key=='author'){                      
                             $news_date .= ', '. $value;
                         }
@@ -1287,8 +1296,19 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     if($archive_options['ho']==='on') $news_date='';
                     else $news_date .= '<br />'; 
                     
-                    if(($archive_options['tag']!==false) && ($archive_options['tag']!=='off') && ($archive_options['class']=='page')) $output .= '<div class="archive_item">'.trim($news_date).$news_head.$news_subtitle.'</div>'.NL;
-                    else $output .= '<ul><li class="level3"><div class="li">'.trim($news_date).$news_head.'</div></li></ul>'.NL;
+                    if (($archive_options['p_signs'] !== false) && ((int)$archive_options['p_signs'] >2)) {
+                        if ((int)$news_wysiwyg==false) $news_content = p_render('xhtml',p_get_instructions($news_content),$info);
+                        // cws   ...   content with style syntax parameter
+                        // strip all HTML-tags except a few selected
+                        if ($archive_options['cws'] == false) $news_content = strip_tags($news_content, '<br>');
+                        elseif ((int)$archive_options['cws'] <2 && ($archive_options['cws'] !== false)) $news_content = strip_tags($news_content, '<br><font><strong><a><u><ul><b><i>');
+
+                        $news_content = "<br>".'<span class="news_preview">' . trim(substr($news_content,0,(int)$archive_options['p_signs'])).' ...</span>'.NL;
+                    }
+                    else $news_content="";
+                    
+                    if(($archive_options['tag']!==false) && ($archive_options['tag']!=='off') && ($archive_options['class']=='page')) $output .= '<div class="archive_item">'.trim($news_date).$news_head.$news_subtitle.$news_content.'</div>'.NL;
+                    else $output .= '<ul><li class="level3"><div class="li">'.trim($news_date).$news_head.$news_content.'</div></li></ul>'.NL;
                     
                     $close_ytag    = "";
                     $close_mtag    = "";
@@ -1296,6 +1316,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                     $news_date     = "";
                     $news_head     = "";
                     $news_subtitle = "";
+                    $news_wysiwyg  = false;
+                    $news_content  = "";
                     $tags          = ""; 
                 }
           }
@@ -1332,7 +1354,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                           </div>'.NL.NL;
           }
           elseif($archive_options['class']=='box') {
-              $output = '<div class="archive_box" id="archive__box" style="'.$archive_options['style'].'">
+              
+              $output  = '<div class="archive_box" id="archive__box" style="'.$archive_options['style'].'">
                             <div id="news_items">
                                 <ul class="n_box">'.$output.'</ul>
                              </div>
