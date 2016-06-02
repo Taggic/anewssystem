@@ -24,7 +24,7 @@ class action_plugin_anewssystem extends DokuWiki_Action_Plugin {
     return array(
          'author' => 'Taggic',
          'email'  => 'Taggic@t-online.de',
-         'date'   => '2013-02-19',
+         'date'   => '2016-06-02',
          'name'   => 'News archive page (action plugin component)',
          'desc'   => 'to show the News aechive alone on a page.',
          'url'    => 'http://www.dokuwiki.org/plugin:anewssystem',
@@ -33,7 +33,7 @@ class action_plugin_anewssystem extends DokuWiki_Action_Plugin {
 /******************************************************************************
 **  Register its handlers with the dokuwiki's event controller
 */
-     function register(&$controller) {
+     function register(Doku_Event_Handler &$controller) {
          $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, '_handle_act', array());
          $controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'output', array());
      }
