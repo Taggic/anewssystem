@@ -43,7 +43,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 /******************************************************************************/
 /* handle the match
 */   
-    function handle($match, $state, $pos, &$handler) {
+    function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID, $conf;
         $match = substr($match,strlen('{{anss>'),-2); //strip markup from start and end
 
@@ -71,7 +71,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 /* render output
 * @author Taggic <taggic@t-online.de>
 */   
-    function render($mode, &$renderer, $ans_conf) {
+    function render($mode, Doku_Renderer $renderer, $ans_conf) {
         global $ID, $conf;
         $xhtml_renderer = new Doku_Renderer_xhtml();
         $records      = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate_'.$conf['lang'].'.txt');
