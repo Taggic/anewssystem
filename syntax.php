@@ -43,7 +43,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 /******************************************************************************/
 /* handle the match
 */   
-    function handle($match, $state, $pos,Doku_Handler &$handler) {
+    function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID, $conf;
         $match = substr($match,strlen('{{anss>'),-2); //strip markup from start and end
 
@@ -71,7 +71,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 /* render output
 * @author Taggic <taggic@t-online.de>
 */   
-    function render($mode,Doku_Renderer &$renderer, $ans_conf) {
+    function render($mode, Doku_Renderer $renderer, $ans_conf) {
         global $ID, $conf;
         $xhtml_renderer = new Doku_Renderer_xhtml();
         $records      = file(DOKU_PLUGIN.'anewssystem/tpl/newstemplate_'.$conf['lang'].'.txt');
@@ -620,8 +620,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
                               }
                               function count_chars(obj, max) {
                                     var data = obj.innerHTML;
-                                    var extract = data.split(" ");
-                                    var bextract = data.split("\n");
+                                    var extract = data.explode(" ");
+                                    var bextract = data.explode("\n");
                                     var cextract = extract.length + bextract.length -1;
                                     if(cextract>max) output = \'<span style="color:red;">\' + cextract + \'</span>\';
                                     else output = cextract;
@@ -697,7 +697,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
              $aFlag = false;
              $bFlag = false;
              foreach ($temp_array as $item) {
-                    list($key, $value) = split(":",trim($item),2);
+                    list($key, $value) = explode(":",trim($item),2);
                     $tag_flag = false;
                     
                     if($key=='anchor') {
@@ -858,7 +858,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
               
               // if perishing date is not exceeded then collect the tags
               foreach ($temp_array as $item) {
-                  list($key, $value) = split(":",trim($item),2);
+                  list($key, $value) = explode(":",trim($item),2);
                   if(($key=='start') && strtotime(trim($value)) < time()) {
                       $aFlag = true;
                       $value = date($this->getConf('d_format'), strtotime($value));
@@ -883,7 +883,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           }    
 
           // evaluate the styling parameters    
-          $tokens = preg_split('/\s+/', $tmp,-1, PREG_SPLIT_NO_EMPTY);   
+          $tokens = preg_explode('/\s+/', $tmp,-1, PREG_SPLIT_NO_EMPTY);   
           $div_class = 'newsclouddiv';
           foreach ($tokens as $token) {
               
@@ -1007,7 +1007,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
              $bFlag = false;
 
                  foreach ($temp_array as $item) {
-                        list($key, $value) = split(":",trim($item),2);
+                        list($key, $value) = explode(":",trim($item),2);
                         $tag_flag = false;
                         if($key=='anchor') {
                             $anchor = trim($value);
@@ -1187,7 +1187,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           
           // split parameter into array with key and data
           foreach ($split_array as $item) {
-            list($key, $value) = split("=",trim($item),2);
+            list($key, $value) = explode("=",trim($item),2);
             $archive_options = $archive_options + array($key => $value);
           }
 //          echo $archive_options['tag'].'<br />';
@@ -1219,7 +1219,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
              $aFlag = false;   // flag: start date value exists and start is not in future
 
                  foreach ($article_array as $item) {
-                        list($key, $value) = split(":",trim($item),2);
+                        list($key, $value) = explode(":",trim($item),2);
                         $tag_flag = false;
                         if($key=='anchor') {
                             $anchor = trim($value);
@@ -1496,7 +1496,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           			{ // Code for IE
           				textarea.focus();
           				var sel = document.selection.createRange();
-          				var list = sel.text.split("\n");
+          				var list = sel.text.explode("\n");
           		
           				for(i=0;i<list.length;i++) 
           				{ list[i] = tag1 + list[i]; }
@@ -1513,7 +1513,7 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
           		    var scrollLeft = textarea.scrollLeft;
 
                   var sel = textarea.value.substring(start, end);
-          		    var list = sel.split("\n");
+          		    var list = sel.explode("\n");
           		
               		for(i=0;i<list.length;i++) 
           				{ list[i] = tag1 + list[i]; }
@@ -1528,8 +1528,8 @@ class syntax_plugin_anewssystem extends DokuWiki_Syntax_Plugin {
 
           function count_chars(obj, max) {
                 var data = obj.innerHTML;
-                var extract = data.split(" ");
-                var bextract = data.split("\n");
+                var extract = data.explode(" ");
+                var bextract = data.explode("\n");
                 var cextract = extract.length + bextract.length -1;
                 if(cextract>max) output = \'<span style="color:red;">\' + cextract + \'</span>\';
                 else output = cextract;
